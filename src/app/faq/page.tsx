@@ -57,28 +57,21 @@ const faqs = [
 
 export default function FAQPage() {
   return (
-    <div className="py-20">
+    <div className="py-16 sm:py-20">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <p className="text-accent font-medium tracking-widest uppercase text-sm mb-3">
-            Common Questions
-          </p>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">FAQ</h1>
-          <p className="text-muted text-lg max-w-xl mx-auto">
-            Everything you need to know about renting a luxury restroom trailer
-            from Haul-A-Stall.
+        <div className="text-center mb-12">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold mb-3">
+            Frequently Asked Questions
+          </h1>
+          <p className="text-muted max-w-xl mx-auto">
+            Everything you need to know about renting a luxury restroom trailer.
           </p>
         </div>
 
-        {/* FAQ List */}
-        <div className="space-y-4">
+        <div className="divide-y divide-surface-light">
           {faqs.map((faq, index) => (
-            <details
-              key={index}
-              className="group bg-surface border border-surface-light/30 rounded-xl overflow-hidden hover:border-accent/30 transition-colors"
-            >
-              <summary className="flex items-center justify-between cursor-pointer px-6 py-5 font-medium text-lg list-none">
+            <details key={index} className="group py-4">
+              <summary className="flex items-center justify-between cursor-pointer font-medium list-none py-1">
                 <span>{faq.question}</span>
                 <svg
                   className="w-5 h-5 text-muted shrink-0 ml-4 transition-transform group-open:rotate-180"
@@ -94,29 +87,25 @@ export default function FAQPage() {
                   />
                 </svg>
               </summary>
-              <div className="px-6 pb-5 text-muted leading-relaxed">
+              <p className="pt-3 pb-1 text-muted leading-relaxed">
                 {faq.answer}
-              </div>
+              </p>
             </details>
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="text-center mt-16 bg-surface border border-surface-light/30 rounded-xl p-8">
-          <h2 className="text-2xl font-bold mb-3">Still Have Questions?</h2>
-          <p className="text-muted mb-6">
-            We&apos;re happy to help with any other questions you might have.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="text-center mt-12 pt-8 border-t border-surface-light">
+          <p className="text-muted mb-4">Still have questions?</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/contact"
-              className="px-6 py-3 bg-accent text-primary font-semibold rounded-lg hover:bg-accent-light transition-colors"
+              className="px-6 py-3 bg-foreground text-white font-medium rounded hover:bg-primary-light transition-colors"
             >
               Contact Us
             </Link>
             <a
               href="tel:+18444178255"
-              className="px-6 py-3 border border-accent text-accent rounded-lg hover:bg-accent/10 transition-colors"
+              className="px-6 py-3 border border-surface-light text-foreground rounded hover:bg-surface transition-colors"
             >
               Call (844) 417-8255
             </a>
