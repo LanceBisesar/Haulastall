@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 
 const navLinks = [
@@ -15,33 +16,48 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-surface-light">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-surface-light/60 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-18">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <span className="font-display font-bold text-xl tracking-tight text-foreground">
-              Haul-A-Stall
-            </span>
+          <Link href="/" className="flex items-center shrink-0">
+            <Image
+              src="/logo.svg"
+              alt="Haul-A-Stall Luxury Restroom Trailers"
+              width={200}
+              height={44}
+              priority
+              className="h-10 w-auto"
+            />
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-muted hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
+          <nav className="hidden md:flex items-center gap-1">
+            {navLinks.map((link) =>
+              link.href === "/quote" ? (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="ml-3 px-5 py-2 text-sm font-bold bg-accent text-white rounded-full hover:bg-accent-dark transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="px-4 py-2 text-sm font-medium text-muted hover:text-foreground transition-colors rounded-lg hover:bg-surface"
+                >
+                  {link.label}
+                </Link>
+              )
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 text-foreground"
+            className="md:hidden p-2 text-foreground rounded-lg hover:bg-surface transition-colors"
             aria-label="Toggle menu"
           >
             <svg
@@ -71,18 +87,29 @@ export default function Header() {
 
         {/* Mobile Nav */}
         {mobileOpen && (
-          <nav className="md:hidden pb-4 border-t border-surface-light pt-4">
+          <nav className="md:hidden pb-5 pt-3 border-t border-surface-light">
             <div className="flex flex-col gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="px-3 py-2 text-sm font-medium text-muted hover:text-foreground transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) =>
+                link.href === "/quote" ? (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="mx-3 mt-3 px-5 py-3 text-sm font-bold bg-accent text-white rounded-full hover:bg-accent-dark transition-colors text-center"
+                  >
+                    {link.label}
+                  </Link>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="px-4 py-3 text-sm font-medium text-muted hover:text-foreground hover:bg-surface transition-colors rounded-lg"
+                  >
+                    {link.label}
+                  </Link>
+                )
+              )}
             </div>
           </nav>
         )}
