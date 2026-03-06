@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 
 interface Trailer {
@@ -36,7 +36,7 @@ interface PriceBreakdown {
 const steps = [
   { number: 1, label: "Contact Info" },
   { number: 2, label: "Event Details" },
-  { number: 3, label: "Review & Pay" },
+  { number: 3, label: "Review & Reserve" },
 ];
 
 const inputStyles =
@@ -68,8 +68,39 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
   // Date validation error
   const [dateError, setDateError] = useState<string | null>(null);
 
+  // Track which step notifications have been sent
+  const [notifiedSteps, setNotifiedSteps] = useState<Set<number>>(new Set());
+
   // Extract max capacity number from trailer.capacity string (e.g. "Up to 250 guests" → 250)
   const maxCapacity = parseInt(trailer.capacity.replace(/\D/g, ""), 10) || Infinity;
+
+  // Send email notification (fire-and-forget)
+  function sendNotification(payload: Record<string, unknown>) {
+    fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  }
+
+  // Send step 3 notification once pricing is loaded
+  useEffect(() => {
+    if (step === 3 && pricing && !notifiedSteps.has(3)) {
+      sendNotification({
+        step: 3,
+        trailer: trailer.name,
+        contact: contactData,
+        event: eventData,
+        pricing: {
+          total: pricing.totalWithBank.toLocaleString(),
+          basePrice: pricing.basePrice.toLocaleString(),
+          deliveryFee: pricing.deliveryFee.toLocaleString(),
+        },
+      });
+      setNotifiedSteps((prev) => new Set(prev).add(3));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, pricing]);
 
   function getFormData(): Record<string, string> {
     if (!formRef.current) return {};
@@ -142,7 +173,12 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
     if (!formRef.current?.reportValidity()) return;
 
     if (step === 1) {
-      setContactData(getFormData());
+      const data = getFormData();
+      setContactData(data);
+      if (!notifiedSteps.has(1)) {
+        sendNotification({ step: 1, trailer: trailer.name, contact: data });
+        setNotifiedSteps((prev) => new Set(prev).add(1));
+      }
       setStep(2);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (step === 2) {
@@ -154,6 +190,10 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
       }
       setDateError(null);
       setEventData(data);
+      if (!notifiedSteps.has(2)) {
+        sendNotification({ step: 2, trailer: trailer.name, contact: contactData, event: data });
+        setNotifiedSteps((prev) => new Set(prev).add(2));
+      }
       setStep(3);
       fetchPricing(data);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -531,13 +571,13 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
 
           {/* Step 3: Review & Payment */}
           {step === 3 && (
-            <form ref={formRef} onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-8">
               <div className="text-center mb-8">
                 <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                  Review & Payment
+                  Review & Reserve
                 </h2>
                 <p className="text-muted text-sm">
-                  Review your pricing estimate and complete your reservation.
+                  Review your pricing estimate and contact us to complete your reservation.
                 </p>
               </div>
 
@@ -733,212 +773,49 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                 </div>
               </div>
 
-              {/* Payment Method Toggle */}
-              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-surface-light/60" style={{ boxShadow: "var(--card-shadow)" }}>
-                <h3 className="font-display text-lg font-bold text-foreground mb-6 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  Payment Details
+              {/* Limited Inventory Notice */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 sm:p-8 text-center">
+                <svg className="w-12 h-12 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="font-display text-lg font-bold text-foreground mb-3">
+                  Limited Inventory Available
                 </h3>
-
-                {/* Payment method selector */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                  <button
-                    type="button"
-                    onClick={handleSwitchToCard}
-                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-medium text-sm transition-colors ${
-                      paymentMethod === "card"
-                        ? "border-accent bg-accent/5 text-accent"
-                        : "border-surface-light text-muted hover:border-accent/30"
-                    }`}
+                <p className="text-muted leading-relaxed mb-6">
+                  Due to limited inventory, online booking is temporarily unavailable. To complete your reservation, please reach out to us directly via email, phone, or by submitting a quote request. A team member will confirm availability and finalize your booking.
+                </p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+                  <a
+                    href="mailto:Contact@HaulAStall.com"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-white font-bold rounded-full hover:bg-accent-dark transition-colors text-sm"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    Credit Card
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setPaymentMethod("bank"); setShowCcAlert(false); }}
-                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-medium text-sm transition-colors ${
-                      paymentMethod === "bank"
-                        ? "border-accent bg-accent/5 text-accent"
-                        : "border-surface-light text-muted hover:border-accent/30"
-                    }`}
+                    Email Us
+                  </a>
+                  <a
+                    href="tel:+18444178255"
+                    className="inline-flex items-center gap-2 px-6 py-3 border-2 border-accent text-accent font-bold rounded-full hover:bg-accent/5 transition-colors text-sm"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    Bank Account
-                  </button>
-                </div>
-
-                {/* Credit card fee alert */}
-                {showCcAlert && paymentMethod === "card" && (
-                  <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 mb-6 text-sm text-amber-800 flex items-start gap-2">
-                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                    <span>
-                      A <strong>3% credit card processing fee</strong> will be added to your total.
-                      Switch to bank account to avoid this fee.
-                    </span>
-                  </div>
-                )}
-
-                {paymentMethod === "bank" && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6 text-sm text-green-700">
-                    Pay by bank account and avoid the 3% credit card processing fee.
-                  </div>
-                )}
-
-                {/* Credit Card Fields */}
-                {paymentMethod === "card" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div className="sm:col-span-2">
-                      <label htmlFor="cardName" className="block text-sm font-medium text-foreground mb-1.5">
-                        Name on Card <span className="text-red-500">*</span>
-                      </label>
-                      <input type="text" id="cardName" name="cardName" required className={inputStyles} />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label htmlFor="cardNumber" className="block text-sm font-medium text-foreground mb-1.5">
-                        Card Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="cardNumber"
-                        name="cardNumber"
-                        required
-                        placeholder="1234 5678 9012 3456"
-                        maxLength={19}
-                        className={`${inputStyles} placeholder:text-muted-light`}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="cardExpiry" className="block text-sm font-medium text-foreground mb-1.5">
-                        Expiration Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="cardExpiry"
-                        name="cardExpiry"
-                        required
-                        placeholder="MM / YY"
-                        maxLength={7}
-                        className={`${inputStyles} placeholder:text-muted-light`}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="cardCvv" className="block text-sm font-medium text-foreground mb-1.5">
-                        CVV <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="cardCvv"
-                        name="cardCvv"
-                        required
-                        placeholder="123"
-                        maxLength={4}
-                        className={`${inputStyles} placeholder:text-muted-light`}
-                      />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label htmlFor="billingAddress" className="block text-sm font-medium text-foreground mb-1.5">
-                        Billing Address <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="billingAddress"
-                        name="billingAddress"
-                        required
-                        placeholder="If different from contact address"
-                        className={`${inputStyles} placeholder:text-muted-light`}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Bank Account Fields */}
-                {paymentMethod === "bank" && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div className="sm:col-span-2">
-                      <label htmlFor="bankAccountName" className="block text-sm font-medium text-foreground mb-1.5">
-                        Account Holder Name <span className="text-red-500">*</span>
-                      </label>
-                      <input type="text" id="bankAccountName" name="bankAccountName" required className={inputStyles} />
-                    </div>
-                    <div>
-                      <label htmlFor="bankRouting" className="block text-sm font-medium text-foreground mb-1.5">
-                        Routing Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="bankRouting"
-                        name="bankRouting"
-                        required
-                        placeholder="9 digits"
-                        maxLength={9}
-                        pattern="\d{9}"
-                        className={`${inputStyles} placeholder:text-muted-light`}
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="bankAccount" className="block text-sm font-medium text-foreground mb-1.5">
-                        Account Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="bankAccount"
-                        name="bankAccount"
-                        required
-                        placeholder="Account number"
-                        className={`${inputStyles} placeholder:text-muted-light`}
-                      />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label className="block text-sm font-medium text-foreground mb-2">
-                        Account Type <span className="text-red-500">*</span>
-                      </label>
-                      <div className="flex gap-6">
-                        <label className="inline-flex items-center gap-2 cursor-pointer">
-                          <input type="radio" name="bankAccountType" value="checking" required defaultChecked className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40" />
-                          <span className="text-sm text-foreground">Checking</span>
-                        </label>
-                        <label className="inline-flex items-center gap-2 cursor-pointer">
-                          <input type="radio" name="bankAccountType" value="savings" className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40" />
-                          <span className="text-sm text-foreground">Savings</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Terms & Conditions */}
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  name="terms"
-                  required
-                  className="mt-1 w-4 h-4 text-accent border-surface-light rounded focus:ring-accent/40"
-                />
-                <label htmlFor="terms" className="text-sm text-muted">
-                  I have read and accept the{" "}
+                    (844) 417-8255
+                  </a>
                   <Link
-                    href="/terms"
-                    target="_blank"
-                    className="text-accent font-medium underline hover:text-accent-dark transition-colors"
+                    href="/quote"
+                    className="inline-flex items-center gap-2 px-6 py-3 border-2 border-accent text-accent font-bold rounded-full hover:bg-accent/5 transition-colors text-sm"
                   >
-                    Terms and Conditions
-                  </Link>{" "}
-                  <span className="text-red-500">*</span>
-                </label>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Request a Quote
+                  </Link>
+                </div>
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex justify-center">
                 <button
                   type="button"
                   onClick={handleBack}
@@ -946,19 +823,8 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                 >
                   &larr; Back
                 </button>
-                <button
-                  type="submit"
-                  className="px-12 py-4 bg-accent text-white font-bold rounded-full hover:bg-accent-dark transition-colors shadow-lg text-base"
-                >
-                  Submit Reservation
-                </button>
               </div>
-
-              <p className="text-xs text-muted-light text-center">
-                By submitting, you agree to be contacted regarding your reservation.
-                A team member will confirm availability and final pricing.
-              </p>
-            </form>
+            </div>
           )}
         </div>
       </section>

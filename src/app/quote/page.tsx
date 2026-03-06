@@ -19,6 +19,33 @@ export default function QuotePage() {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const data: Record<string, string> = {};
+    fd.forEach((val, key) => { data[key] = val.toString(); });
+
+    // Send email notification
+    fetch("/api/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        step: "quote",
+        quote: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          eventType: data.eventType,
+          eventDate: data.eventDate,
+          eventEndDate: data.eventEndDate,
+          guestCount: data.guestCount,
+          trailerPreference: data.trailerPreference,
+          eventAddress: data.location,
+          waterAccess: data.waterAccess,
+          powerAccess: data.powerAccess,
+          specialRequests: data.details,
+        },
+      }),
+    }).catch(() => {});
+
     setSubmitted(true);
   }
 
