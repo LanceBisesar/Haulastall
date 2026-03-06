@@ -242,22 +242,22 @@ export default function GalleryPage() {
             Book your reservation online or contact us for a personalized
             recommendation based on your event size and needs.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
               href="#trailer-models"
-              className="px-8 py-4 bg-white text-primary font-bold rounded-full hover:bg-white/90 transition-colors shadow-lg cursor-pointer text-center"
+              className="px-8 py-4 bg-white text-primary font-bold rounded-full hover:bg-white/90 transition-colors shadow-lg cursor-pointer text-center inline-flex items-center justify-center"
             >
               Select a Trailer Above
             </a>
             <Link
               href="/quote"
-              className="px-8 py-4 bg-accent text-white font-bold rounded-full hover:bg-accent-dark transition-colors shadow-lg text-center"
+              className="px-8 py-4 bg-accent text-white font-bold rounded-full hover:bg-accent-dark transition-colors shadow-lg text-center inline-flex items-center justify-center"
             >
               Get a Free Quote
             </Link>
             <a
               href="tel:+18444178255"
-              className="px-8 py-4 border-2 border-white/30 text-white font-medium rounded-full hover:bg-white/10 transition-colors leading-tight text-center"
+              className="px-8 py-4 border-2 border-white/30 text-white font-medium rounded-full hover:bg-white/10 transition-colors leading-tight text-center inline-flex items-center justify-center"
             >
               Call<br />(844) 417-8255
             </a>
