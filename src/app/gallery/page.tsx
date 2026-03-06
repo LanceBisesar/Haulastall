@@ -248,6 +248,12 @@ export default function GalleryPage() {
               View Our Trailers
             </Link>
             <Link
+              href="/gallery"
+              className="px-8 py-4 bg-white text-primary font-bold rounded-full hover:bg-white/90 transition-colors shadow-lg border border-surface-light"
+            >
+              Book Your Reservation Online
+            </Link>
+            <Link
               href="/quote"
               className="px-8 py-4 border-2 border-accent/30 text-foreground font-medium rounded-full hover:bg-accent/5 transition-colors"
             >
