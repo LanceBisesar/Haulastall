@@ -24,6 +24,8 @@ const trailerModels = [
     config: "Three women's stalls • Two men's stalls with urinal",
     capacity: "Up to 250 guests",
     tag: "Most Popular",
+    image: "/5-stall-2-door.jpg",
+    layout: "/5-stall-2-door-layout.png",
   },
   {
     name: "3 Door, 3 Stalls",
