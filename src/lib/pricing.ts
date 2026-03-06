@@ -1,11 +1,11 @@
 // ── Trailer base prices (per weekend) ──────────────────────────────
 export const TRAILER_PRICES: Record<string, number> = {
-  "2-door-2-stall": 950,
-  "2-door-5-stall": 1050,
-  "3-door-3-stall": 1050,
-  "4-door-4-stall": 1300,
-  "2-door-10-stall": 1550,
-  "8-door-8-stall": 1850,
+  "2-door-2-stall": 1000,
+  "2-door-5-stall": 1150,
+  "3-door-3-stall": 1150,
+  "4-door-4-stall": 1400,
+  "2-door-10-stall": 1750,
+  "8-door-8-stall": 2000,
 };
 
 // ── Trailer max guest capacities ───────────────────────────────────
@@ -20,11 +20,13 @@ export const TRAILER_CAPACITY: Record<string, number> = {
 
 // ── Distance pricing ──────────────────────────────────────────────
 export const ORIGIN_ZIP = "11432";
-export const FREE_MILES = 10;
-export const PER_MILE_RATE = 5; // dollars
+export const FREE_MILES = 15;
+export const DELIVERY_BASE_FEE = 100; // flat delivery fee
+export const PER_MILE_RATE = 5; // dollars per mile beyond free radius
 
 // ── Holiday surcharge ─────────────────────────────────────────────
-export const HOLIDAY_SURCHARGE = 0.10; // 10%
+export const HOLIDAY_SURCHARGE = 0.15; // 15%
+export const CREDIT_CARD_FEE = 0.03; // 3%
 
 /**
  * Returns major US holiday dates for a given year.
@@ -155,7 +157,9 @@ export interface PriceBreakdown {
   deliveryFee: number;
   holidaySurcharge: number;
   isHoliday: boolean;
-  total: number;
+  creditCardFee: number;
+  totalWithCard: number;
+  totalWithBank: number;
   capacityWarning: string | null;
 }
 
@@ -170,9 +174,9 @@ export async function calculatePrice(
 
   // Distance
   const distanceMiles = await getDistanceFromOrigin(destinationZip);
-  let deliveryFee = 0;
+  let deliveryFee = DELIVERY_BASE_FEE;
   if (distanceMiles !== null && distanceMiles > FREE_MILES) {
-    deliveryFee = (distanceMiles - FREE_MILES) * PER_MILE_RATE;
+    deliveryFee += (distanceMiles - FREE_MILES) * PER_MILE_RATE;
   }
 
   // Holiday check
@@ -186,7 +190,10 @@ export async function calculatePrice(
     capacityWarning = `This trailer is rated for up to ${maxCapacity} guests. With ${guestCount} guests, we recommend upgrading to a larger trailer or adding a second unit for the best experience.`;
   }
 
-  const total = basePrice + deliveryFee + holidaySurcharge;
+  const subtotal = basePrice + deliveryFee + holidaySurcharge;
+  const creditCardFee = Math.round(subtotal * CREDIT_CARD_FEE);
+  const totalWithCard = subtotal + creditCardFee;
+  const totalWithBank = subtotal;
 
   return {
     basePrice,
@@ -194,7 +201,9 @@ export async function calculatePrice(
     deliveryFee,
     isHoliday: holidayFlag,
     holidaySurcharge,
-    total,
+    creditCardFee,
+    totalWithCard,
+    totalWithBank,
     capacityWarning,
   };
 }

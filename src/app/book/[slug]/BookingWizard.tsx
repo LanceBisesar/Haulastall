@@ -16,7 +16,9 @@ interface PriceBreakdown {
   deliveryFee: number;
   holidaySurcharge: number;
   isHoliday: boolean;
-  total: number;
+  creditCardFee: number;
+  totalWithCard: number;
+  totalWithBank: number;
   capacityWarning: string | null;
 }
 
@@ -45,6 +47,9 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
 
   // Capacity warning (shown in step 2 as user types)
   const [capacityWarning, setCapacityWarning] = useState<string | null>(null);
+
+  // Payment method
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank">("card");
 
   // Extract max capacity number from trailer.capacity string (e.g. "Up to 250 guests" → 250)
   const maxCapacity = parseInt(trailer.capacity.replace(/\D/g, ""), 10) || Infinity;
@@ -527,32 +532,29 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                     </div>
 
                     <div className="flex justify-between py-2 border-b border-surface-light/60">
-                      <span className="text-muted">
-                        Delivery fee
-                        {pricing.distanceMiles !== null && (
-                          <span className="text-xs ml-1">
-                            ({pricing.distanceMiles} mi{pricing.distanceMiles <= 10 ? " — within free zone" : ` — ${pricing.distanceMiles - 10} mi × $5`})
-                          </span>
-                        )}
-                      </span>
-                      <span className="font-semibold text-foreground">
-                        {pricing.deliveryFee === 0 ? "FREE" : `$${pricing.deliveryFee.toLocaleString()}`}
-                      </span>
+                      <span className="text-muted">Delivery fee</span>
+                      <span className="font-semibold text-foreground">${pricing.deliveryFee.toLocaleString()}</span>
                     </div>
 
                     {pricing.isHoliday && (
                       <div className="flex justify-between py-2 border-b border-surface-light/60">
-                        <span className="text-muted">
-                          Holiday surcharge
-                          <span className="text-xs ml-1">(10%)</span>
-                        </span>
+                        <span className="text-muted">Holiday surcharge</span>
                         <span className="font-semibold text-foreground">${pricing.holidaySurcharge.toLocaleString()}</span>
+                      </div>
+                    )}
+
+                    {paymentMethod === "card" && (
+                      <div className="flex justify-between py-2 border-b border-surface-light/60">
+                        <span className="text-muted">Credit card processing fee (3%)</span>
+                        <span className="font-semibold text-foreground">${pricing.creditCardFee.toLocaleString()}</span>
                       </div>
                     )}
 
                     <div className="flex justify-between py-3 mt-2 border-t-2 border-foreground/10">
                       <span className="text-lg font-bold text-foreground">Estimated Total</span>
-                      <span className="text-lg font-bold text-accent">${pricing.total.toLocaleString()}</span>
+                      <span className="text-lg font-bold text-accent">
+                        ${(paymentMethod === "card" ? pricing.totalWithCard : pricing.totalWithBank).toLocaleString()}
+                      </span>
                     </div>
 
                     {/* Capacity warning in review */}
@@ -637,7 +639,7 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                 </div>
               </div>
 
-              {/* Payment Details */}
+              {/* Payment Method Toggle */}
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-surface-light/60" style={{ boxShadow: "var(--card-shadow)" }}>
                 <h3 className="font-display text-lg font-bold text-foreground mb-6 flex items-center gap-2">
                   <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -645,69 +647,166 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                   </svg>
                   Payment Details
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="sm:col-span-2">
-                    <label htmlFor="cardName" className="block text-sm font-medium text-foreground mb-1.5">
-                      Name on Card <span className="text-red-500">*</span>
-                    </label>
-                    <input type="text" id="cardName" name="cardName" required className={inputStyles} />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label htmlFor="cardNumber" className="block text-sm font-medium text-foreground mb-1.5">
-                      Card Number <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="cardNumber"
-                      name="cardNumber"
-                      required
-                      placeholder="1234 5678 9012 3456"
-                      maxLength={19}
-                      className={`${inputStyles} placeholder:text-muted-light`}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="cardExpiry" className="block text-sm font-medium text-foreground mb-1.5">
-                      Expiration Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="cardExpiry"
-                      name="cardExpiry"
-                      required
-                      placeholder="MM / YY"
-                      maxLength={7}
-                      className={`${inputStyles} placeholder:text-muted-light`}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="cardCvv" className="block text-sm font-medium text-foreground mb-1.5">
-                      CVV <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="cardCvv"
-                      name="cardCvv"
-                      required
-                      placeholder="123"
-                      maxLength={4}
-                      className={`${inputStyles} placeholder:text-muted-light`}
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label htmlFor="billingAddress" className="block text-sm font-medium text-foreground mb-1.5">
-                      Billing Address <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="billingAddress"
-                      name="billingAddress"
-                      required
-                      placeholder="If different from contact address"
-                      className={`${inputStyles} placeholder:text-muted-light`}
-                    />
-                  </div>
+
+                {/* Payment method selector */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("card")}
+                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-medium text-sm transition-colors ${
+                      paymentMethod === "card"
+                        ? "border-accent bg-accent/5 text-accent"
+                        : "border-surface-light text-muted hover:border-accent/30"
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Credit Card
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("bank")}
+                    className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-medium text-sm transition-colors ${
+                      paymentMethod === "bank"
+                        ? "border-accent bg-accent/5 text-accent"
+                        : "border-surface-light text-muted hover:border-accent/30"
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    Bank Account
+                  </button>
                 </div>
+
+                {paymentMethod === "bank" && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6 text-sm text-green-700">
+                    Pay by bank account and avoid the 3% credit card processing fee.
+                  </div>
+                )}
+
+                {/* Credit Card Fields */}
+                {paymentMethod === "card" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="sm:col-span-2">
+                      <label htmlFor="cardName" className="block text-sm font-medium text-foreground mb-1.5">
+                        Name on Card <span className="text-red-500">*</span>
+                      </label>
+                      <input type="text" id="cardName" name="cardName" required className={inputStyles} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="cardNumber" className="block text-sm font-medium text-foreground mb-1.5">
+                        Card Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="cardNumber"
+                        name="cardNumber"
+                        required
+                        placeholder="1234 5678 9012 3456"
+                        maxLength={19}
+                        className={`${inputStyles} placeholder:text-muted-light`}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="cardExpiry" className="block text-sm font-medium text-foreground mb-1.5">
+                        Expiration Date <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="cardExpiry"
+                        name="cardExpiry"
+                        required
+                        placeholder="MM / YY"
+                        maxLength={7}
+                        className={`${inputStyles} placeholder:text-muted-light`}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="cardCvv" className="block text-sm font-medium text-foreground mb-1.5">
+                        CVV <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="cardCvv"
+                        name="cardCvv"
+                        required
+                        placeholder="123"
+                        maxLength={4}
+                        className={`${inputStyles} placeholder:text-muted-light`}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="billingAddress" className="block text-sm font-medium text-foreground mb-1.5">
+                        Billing Address <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="billingAddress"
+                        name="billingAddress"
+                        required
+                        placeholder="If different from contact address"
+                        className={`${inputStyles} placeholder:text-muted-light`}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Bank Account Fields */}
+                {paymentMethod === "bank" && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div className="sm:col-span-2">
+                      <label htmlFor="bankAccountName" className="block text-sm font-medium text-foreground mb-1.5">
+                        Account Holder Name <span className="text-red-500">*</span>
+                      </label>
+                      <input type="text" id="bankAccountName" name="bankAccountName" required className={inputStyles} />
+                    </div>
+                    <div>
+                      <label htmlFor="bankRouting" className="block text-sm font-medium text-foreground mb-1.5">
+                        Routing Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="bankRouting"
+                        name="bankRouting"
+                        required
+                        placeholder="9 digits"
+                        maxLength={9}
+                        pattern="\d{9}"
+                        className={`${inputStyles} placeholder:text-muted-light`}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="bankAccount" className="block text-sm font-medium text-foreground mb-1.5">
+                        Account Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="bankAccount"
+                        name="bankAccount"
+                        required
+                        placeholder="Account number"
+                        className={`${inputStyles} placeholder:text-muted-light`}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Account Type <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex gap-6">
+                        <label className="inline-flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="bankAccountType" value="checking" required defaultChecked className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40" />
+                          <span className="text-sm text-foreground">Checking</span>
+                        </label>
+                        <label className="inline-flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="bankAccountType" value="savings" className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40" />
+                          <span className="text-sm text-foreground">Savings</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Terms & Conditions */}
