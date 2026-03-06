@@ -196,20 +196,115 @@ export default function QuotePage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label
+                    htmlFor="eventEndDate"
+                    className="block text-sm font-semibold mb-2"
+                  >
+                    Event End Date
+                  </label>
+                  <input
+                    type="date"
+                    id="eventEndDate"
+                    name="eventEndDate"
+                    className={inputStyles}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="trailerPreference"
+                    className="block text-sm font-semibold mb-2"
+                  >
+                    Trailer Preference
+                  </label>
+                  <select
+                    id="trailerPreference"
+                    name="trailerPreference"
+                    className={inputStyles}
+                  >
+                    <option value="">Not sure yet</option>
+                    <option value="2-door-2-stall">2 Door, 2 Stalls (up to 175 guests)</option>
+                    <option value="2-door-4-stall">2 Door, 4 Stalls (up to 200 guests)</option>
+                    <option value="3-door-3-stall">3 Door, 3 Stalls (up to 175 guests)</option>
+                    <option value="4-door-4-stall">4 Door, 4 Stalls (up to 350 guests)</option>
+                    <option value="2-door-9-stall">2 Door, 9 Stalls (up to 500 guests)</option>
+                    <option value="ada-accessible">ADA Accessible</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
                 <label
                   htmlFor="location"
                   className="block text-sm font-semibold mb-2"
                 >
-                  Event Location
+                  Event / Delivery Address <span className="text-accent">*</span>
                 </label>
                 <input
                   type="text"
                   id="location"
                   name="location"
+                  required
                   className={inputStyles}
-                  placeholder="City, State or full address"
+                  placeholder="Full address where the trailer will be delivered"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    Water hose spigot within 100 ft? <span className="text-accent">*</span>
+                  </label>
+                  <div className="flex gap-6 mt-1">
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="waterAccess"
+                        value="yes"
+                        required
+                        className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40"
+                      />
+                      <span className="text-sm">Yes</span>
+                    </label>
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="waterAccess"
+                        value="no"
+                        className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40"
+                      />
+                      <span className="text-sm">No</span>
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    Designated power outlet within 100 ft? <span className="text-accent">*</span>
+                  </label>
+                  <div className="flex gap-6 mt-1">
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="powerAccess"
+                        value="yes"
+                        required
+                        className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40"
+                      />
+                      <span className="text-sm">Yes</span>
+                    </label>
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="powerAccess"
+                        value="no"
+                        className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40"
+                      />
+                      <span className="text-sm">No</span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -217,14 +312,14 @@ export default function QuotePage() {
                   htmlFor="details"
                   className="block text-sm font-semibold mb-2"
                 >
-                  Additional Details
+                  Special Requests / Additional Details
                 </label>
                 <textarea
                   id="details"
                   name="details"
                   rows={4}
                   className={`${inputStyles} resize-none`}
-                  placeholder="Tell us more about your event..."
+                  placeholder="Any special requirements, site access notes, or additional details..."
                 />
               </div>
 

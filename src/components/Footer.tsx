@@ -9,7 +9,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Image
-              src="/logo.png"
+              src="/logo.svg"
               alt="Haul-A-Stall"
               width={180}
               height={117}

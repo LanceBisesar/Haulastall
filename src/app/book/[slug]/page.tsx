@@ -280,6 +280,58 @@ export default async function BookTrailerPage({
                     className="w-full px-4 py-3 rounded-xl border border-surface-light bg-white text-foreground placeholder:text-muted-light focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Is there a water hose spigot within 100 ft? <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-6">
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="waterAccess"
+                        value="yes"
+                        required
+                        className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40"
+                      />
+                      <span className="text-sm text-foreground">Yes</span>
+                    </label>
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="waterAccess"
+                        value="no"
+                        className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40"
+                      />
+                      <span className="text-sm text-foreground">No</span>
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Is there a designated power outlet within 100 ft? <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-6">
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="powerAccess"
+                        value="yes"
+                        required
+                        className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40"
+                      />
+                      <span className="text-sm text-foreground">Yes</span>
+                    </label>
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="powerAccess"
+                        value="no"
+                        className="w-4 h-4 text-accent border-surface-light focus:ring-accent/40"
+                      />
+                      <span className="text-sm text-foreground">No</span>
+                    </label>
+                  </div>
+                </div>
                 <div className="sm:col-span-2">
                   <label htmlFor="eventNotes" className="block text-sm font-medium text-foreground mb-1.5">
                     Special Requests / Notes
@@ -398,6 +450,28 @@ export default async function BookTrailerPage({
               <p className="text-xs text-muted-light mt-3">
                 Final pricing will be confirmed via email after submission based on event details and delivery location.
               </p>
+            </div>
+
+            {/* Terms & Conditions */}
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                id="terms"
+                name="terms"
+                required
+                className="mt-1 w-4 h-4 text-accent border-surface-light rounded focus:ring-accent/40"
+              />
+              <label htmlFor="terms" className="text-sm text-muted">
+                I have read and accept the{" "}
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  className="text-accent font-medium underline hover:text-accent-dark transition-colors"
+                >
+                  Terms and Conditions
+                </Link>{" "}
+                <span className="text-red-500">*</span>
+              </label>
             </div>
 
             {/* Submit */}
