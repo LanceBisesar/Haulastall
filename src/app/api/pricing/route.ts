@@ -3,7 +3,7 @@ import { calculatePrice, TRAILER_PRICES } from "@/lib/pricing";
 
 export async function POST(req: NextRequest) {
   try {
-    const { trailerSlug, destinationZip, eventDate, guestCount } = await req.json();
+    const { trailerSlug, destinationZip, eventDate, eventEndDate, guestCount } = await req.json();
 
     if (!trailerSlug || !TRAILER_PRICES[trailerSlug]) {
       return NextResponse.json({ error: "Invalid trailer" }, { status: 400 });
@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
       trailerSlug,
       destinationZip,
       eventDate,
-      guestCount ? parseInt(guestCount, 10) : undefined
+      guestCount ? parseInt(guestCount, 10) : undefined,
+      eventEndDate || undefined
     );
 
     return NextResponse.json(breakdown);

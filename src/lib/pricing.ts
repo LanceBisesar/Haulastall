@@ -66,12 +66,45 @@ export function getHolidayDates(year: number): Date[] {
   return holidays;
 }
 
-/** Check if a date falls on or near a major US holiday */
+/** Check if a single date falls on or near a major US holiday */
 export function isHoliday(date: Date): boolean {
   const year = date.getFullYear();
   const holidays = getHolidayDates(year);
   const dateStr = dateToString(date);
   return holidays.some((h) => dateToString(h) === dateStr);
+}
+
+/** Check if ANY date in a range falls on or near a major US holiday */
+export function isHolidayInRange(startDate: Date, endDate: Date): boolean {
+  const d = new Date(startDate);
+  while (d <= endDate) {
+    if (isHoliday(d)) return true;
+    d.setDate(d.getDate() + 1);
+  }
+  return false;
+}
+
+/**
+ * Count the number of distinct weekends (Fri-Sun groups) that overlap
+ * with the rental period. A weekend is any Fri/Sat/Sun block.
+ * Minimum is always 1 (base rental covers at least one weekend).
+ */
+export function countWeekends(startDate: Date, endDate: Date): number {
+  const weekendSundays = new Set<string>();
+  const d = new Date(startDate);
+  while (d <= endDate) {
+    const day = d.getDay(); // 0=Sun, 5=Fri, 6=Sat
+    if (day === 5 || day === 6 || day === 0) {
+      // Find the Sunday that anchors this weekend
+      const sunday = new Date(d);
+      if (day === 5) sunday.setDate(sunday.getDate() + 2);
+      else if (day === 6) sunday.setDate(sunday.getDate() + 1);
+      // day === 0 → already Sunday
+      weekendSundays.add(dateToString(sunday));
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return Math.max(1, weekendSundays.size);
 }
 
 function dateToString(d: Date): string {
@@ -152,6 +185,8 @@ export async function getDistanceFromOrigin(destinationZip: string): Promise<num
 // ── Full price calculation ────────────────────────────────────────
 
 export interface PriceBreakdown {
+  basePricePerWeekend: number;
+  weekendCount: number;
   basePrice: number;
   distanceMiles: number | null;
   deliveryFee: number;
@@ -167,21 +202,31 @@ export async function calculatePrice(
   trailerSlug: string,
   destinationZip: string,
   eventDate: string,
-  guestCount?: number
+  guestCount?: number,
+  eventEndDate?: string
 ): Promise<PriceBreakdown> {
-  const basePrice = TRAILER_PRICES[trailerSlug] ?? 0;
+  const basePricePerWeekend = TRAILER_PRICES[trailerSlug] ?? 0;
   const maxCapacity = TRAILER_CAPACITY[trailerSlug] ?? Infinity;
 
-  // Distance
+  // Determine rental date range
+  const startDate = new Date(eventDate + "T00:00:00");
+  const endDate = eventEndDate
+    ? new Date(eventEndDate + "T00:00:00")
+    : startDate;
+
+  // Count weekends in the rental period (base price × number of weekends)
+  const weekendCount = countWeekends(startDate, endDate);
+  const basePrice = basePricePerWeekend * weekendCount;
+
+  // Distance — delivery fee is charged once regardless of weekends
   const distanceMiles = await getDistanceFromOrigin(destinationZip);
   let deliveryFee = DELIVERY_BASE_FEE;
   if (distanceMiles !== null && distanceMiles > FREE_MILES) {
     deliveryFee += (distanceMiles - FREE_MILES) * PER_MILE_RATE;
   }
 
-  // Holiday check
-  const date = new Date(eventDate + "T00:00:00");
-  const holidayFlag = isHoliday(date);
+  // Holiday check — applies if ANY day in the range is a holiday
+  const holidayFlag = isHolidayInRange(startDate, endDate);
   const holidaySurcharge = holidayFlag ? Math.round(basePrice * HOLIDAY_SURCHARGE) : 0;
 
   // Capacity warning
@@ -196,6 +241,8 @@ export async function calculatePrice(
   const totalWithBank = subtotal;
 
   return {
+    basePricePerWeekend,
+    weekendCount,
     basePrice,
     distanceMiles,
     deliveryFee,

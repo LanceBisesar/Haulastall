@@ -11,6 +11,8 @@ interface Trailer {
 }
 
 interface PriceBreakdown {
+  basePricePerWeekend: number;
+  weekendCount: number;
   basePrice: number;
   distanceMiles: number | null;
   deliveryFee: number;
@@ -99,6 +101,7 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
           trailerSlug: trailer.slug,
           destinationZip: zip,
           eventDate: evData.eventDate,
+          eventEndDate: evData.eventEndDate || undefined,
           guestCount: evData.guestCount,
         }),
       });
@@ -527,7 +530,14 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                 {pricing && (
                   <div className="space-y-3">
                     <div className="flex justify-between py-2 border-b border-surface-light/60">
-                      <span className="text-muted">Base rental ({trailer.name})</span>
+                      <span className="text-muted">
+                        Base rental ({trailer.name})
+                        {pricing.weekendCount > 1 && (
+                          <span className="text-xs ml-1">
+                            &mdash; ${pricing.basePricePerWeekend.toLocaleString()} &times; {pricing.weekendCount} weekends
+                          </span>
+                        )}
+                      </span>
                       <span className="font-semibold text-foreground">${pricing.basePrice.toLocaleString()}</span>
                     </div>
 
