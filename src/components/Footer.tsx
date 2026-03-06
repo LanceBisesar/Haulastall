@@ -30,6 +30,7 @@ export default function Footer() {
               {[
                 { href: "/", label: "Home" },
                 { href: "/gallery", label: "Our Trailers" },
+                { href: "/photos", label: "Gallery" },
                 { href: "/contact", label: "Contact Us" },
                 { href: "/faq", label: "FAQ" },
                 { href: "/quote", label: "Get a Quote" },

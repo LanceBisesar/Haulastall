@@ -226,11 +226,11 @@ export default function QuotePage() {
                   >
                     <option value="">Not sure yet</option>
                     <option value="2-door-2-stall">2 Door, 2 Stalls (up to 175 guests)</option>
-                    <option value="2-door-4-stall">2 Door, 4 Stalls (up to 200 guests)</option>
+                    <option value="2-door-5-stall">2 Door, 5 Stalls (up to 250 guests)</option>
                     <option value="3-door-3-stall">3 Door, 3 Stalls (up to 175 guests)</option>
                     <option value="4-door-4-stall">4 Door, 4 Stalls (up to 350 guests)</option>
                     <option value="2-door-10-stall">2 Door, 10 Stalls (up to 500 guests)</option>
-                    <option value="ada-accessible">ADA Accessible</option>
+                    <option value="8-door-8-stall">8 Door, 8 Stalls (up to 700 guests)</option>
                   </select>
                 </div>
               </div>

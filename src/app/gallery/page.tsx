@@ -19,10 +19,10 @@ const trailerModels = [
     layout: "/2-stall-2-door-layout.webp",
   },
   {
-    name: "2 Door, 4 Stalls",
-    slug: "2-door-4-stall",
-    config: "Three women's stalls • One men's stall with urinal",
-    capacity: "Up to 200 guests",
+    name: "2 Door, 5 Stalls",
+    slug: "2-door-5-stall",
+    config: "Three women's stalls • Two men's stalls with urinal",
+    capacity: "Up to 250 guests",
     tag: "Most Popular",
   },
   {
@@ -51,11 +51,11 @@ const trailerModels = [
     layout: "/10-stall-2-door-layout.webp",
   },
   {
-    name: "ADA Accessible",
-    slug: "ada-accessible",
-    config: "Wheelchair accessible stall with grab bars and wide doorway",
-    capacity: "ADA compliant",
-    tag: "Accessible",
+    name: "8 Door, 8 Stalls",
+    slug: "8-door-8-stall",
+    config: "Four women's stalls • Four men's stalls with urinals",
+    capacity: "Up to 700 guests",
+    tag: "Grand Events",
   },
 ];
 

@@ -11,10 +11,10 @@ const trailerModels: Record<
     config: "Women's private toilet • Men's private toilet with urinal",
     capacity: "Up to 175 guests",
   },
-  "2-door-4-stall": {
-    name: "2 Door, 4 Stalls",
-    config: "Three women's stalls • One men's stall with urinal",
-    capacity: "Up to 200 guests",
+  "2-door-5-stall": {
+    name: "2 Door, 5 Stalls",
+    config: "Three women's stalls • Two men's stalls with urinal",
+    capacity: "Up to 250 guests",
   },
   "3-door-3-stall": {
     name: "3 Door, 3 Stalls",
@@ -31,10 +31,10 @@ const trailerModels: Record<
     config: "Five women's stalls • Two men's stalls with urinals",
     capacity: "Up to 500 guests",
   },
-  "ada-accessible": {
-    name: "ADA Accessible",
-    config: "Wheelchair accessible stall with grab bars and wide doorway",
-    capacity: "ADA compliant",
+  "8-door-8-stall": {
+    name: "8 Door, 8 Stalls",
+    config: "Four women's stalls • Four men's stalls with urinals",
+    capacity: "Up to 700 guests",
   },
 };
 
