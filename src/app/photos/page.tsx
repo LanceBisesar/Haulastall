@@ -15,7 +15,21 @@ const exteriorPhotos = [
   { src: "/10-stall-2-door.png", alt: "10 Stall 2 Door Trailer — Exterior" },
 ];
 
-const interiorPhotos: { src: string; alt: string }[] = [];
+const interiorPhotos = [
+  { src: "/interior-common-area.webp", alt: "Common Area Restroom Interior" },
+  { src: "/interior-stall-1.webp", alt: "Restroom Stall Interior" },
+  { src: "/interior-luxury-womens.jpg", alt: "Luxury Women's Restroom" },
+  { src: "/interior-womens.jpg", alt: "Women's Interior" },
+  { src: "/interior-mens.jpg", alt: "Men's Interior" },
+  { src: "/interior-singular-mens.jpg", alt: "Men's Single Stall" },
+  { src: "/interior-12-station-womens.jpg", alt: "12 Station Women's Restroom" },
+  { src: "/interior-3-station-womens.jpg", alt: "3 Station Women's Restroom" },
+  { src: "/interior-8x17.jpg", alt: "8x17 Trailer Interior" },
+  { src: "/interior-8x20-gray.jpg", alt: "8x20 Trailer Interior" },
+  { src: "/interior-dsc01850.jpg", alt: "Trailer Interior View" },
+  { src: "/interior-dsc03401.jpg", alt: "Trailer Interior Detail" },
+  { src: "/interior-dsc04247.jpg", alt: "Trailer Interior Finish" },
+];
 
 export default function PhotosPage() {
   return (
