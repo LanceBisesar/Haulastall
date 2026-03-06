@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -13,6 +14,8 @@ const trailerModels = [
     config: "Women's private toilet • Men's private toilet with urinal",
     capacity: "Up to 100 guests",
     tag: "Intimate Events",
+    image: "/2-stall-2-door.webp",
+    layout: "/2-stall-2-door-layout.webp",
   },
   {
     name: "2 Door, 4 Stalls",
@@ -31,6 +34,8 @@ const trailerModels = [
     config: "Two women's stalls • Two men's private stalls with urinals",
     capacity: "Up to 250 guests",
     tag: "Large Events",
+    image: "/4-stall-4-door.webp",
+    layout: "/4-stall-4-door-layout.webp",
   },
   {
     name: "2 Door, 9 Stalls",
@@ -120,26 +125,51 @@ export default function GalleryPage() {
                 className="card-hover bg-white rounded-2xl overflow-hidden border border-surface-light/60"
                 style={{ boxShadow: "var(--card-shadow)" }}
               >
-                {/* Image placeholder */}
-                <div className="aspect-[4/3] bg-gradient-to-br from-surface to-surface-light relative flex items-center justify-center">
-                  <svg
-                    className="w-16 h-16 text-accent/25"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                {/* Trailer image */}
+                <div className="aspect-[4/3] bg-gradient-to-br from-surface to-surface-light relative flex items-center justify-center overflow-hidden">
+                  {"image" in model && model.image ? (
+                    <Image
+                      src={model.image}
+                      alt={model.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
-                  </svg>
+                  ) : (
+                    <svg
+                      className="w-16 h-16 text-accent/25"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  )}
                   {/* Tag */}
-                  <span className="absolute top-4 left-4 px-3 py-1 bg-accent text-white text-xs font-bold rounded-full">
+                  <span className="absolute top-4 left-4 px-3 py-1 bg-accent text-white text-xs font-bold rounded-full z-10">
                     {model.tag}
                   </span>
                 </div>
+                {/* Floor plan layout */}
+                {"layout" in model && model.layout && (
+                  <div className="bg-white border-t border-surface-light/60 p-4">
+                    <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Floor Plan</p>
+                    <div className="relative aspect-[16/9] bg-surface rounded-lg overflow-hidden">
+                      <Image
+                        src={model.layout}
+                        alt={`${model.name} floor plan`}
+                        fill
+                        className="object-contain"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <div className="p-6">
                   <h3 className="font-display text-xl font-bold text-foreground mb-2">
