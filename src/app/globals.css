@@ -2,19 +2,19 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #1a1a2e;
-  --primary: #1a1a2e;
-  --primary-light: #2d2d4a;
-  --accent: #d4a853;
-  --accent-light: #e8c97a;
-  --accent-dark: #b8922e;
-  --surface: #f8f6f3;
-  --surface-light: #eae6e0;
-  --muted: #6b6b7b;
-  --muted-light: #9a9aab;
-  --hero-overlay: rgba(26, 26, 46, 0.7);
-  --card-shadow: 0 4px 24px rgba(26, 26, 46, 0.08);
-  --card-shadow-hover: 0 8px 32px rgba(26, 26, 46, 0.14);
+  --foreground: #1b2e4a;
+  --primary: #1b2e4a;
+  --primary-light: #2a4366;
+  --accent: #8fab90;
+  --accent-light: #adc5ae;
+  --accent-dark: #6e8e6f;
+  --surface: #f5f8fa;
+  --surface-light: #e4ecf0;
+  --muted: #5e7a8a;
+  --muted-light: #8da4b2;
+  --hero-overlay: rgba(27, 46, 74, 0.7);
+  --card-shadow: 0 4px 24px rgba(27, 46, 74, 0.08);
+  --card-shadow-hover: 0 8px 32px rgba(27, 46, 74, 0.14);
 }
 
 @theme inline {
@@ -47,11 +47,11 @@ html {
 
 /* Gradient utility for hero sections */
 .hero-gradient {
-  background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4a 50%, #1a1a2e 100%);
+  background: linear-gradient(135deg, #1b2e4a 0%, #2a4366 50%, #1b2e4a 100%);
 }
 
 .gold-gradient {
-  background: linear-gradient(135deg, #d4a853 0%, #e8c97a 50%, #d4a853 100%);
+  background: linear-gradient(135deg, #8fab90 0%, #adc5ae 50%, #8fab90 100%);
 }
 
 /* Subtle pattern overlay */
@@ -59,7 +59,7 @@ html {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle at 1px 1px, rgba(212, 168, 83, 0.08) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgba(143, 171, 144, 0.1) 1px, transparent 0);
   background-size: 32px 32px;
   pointer-events: none;
 }
