@@ -26,8 +26,8 @@ const trailerModels: Record<
     config: "Two women's stalls • Two men's private stalls with urinals",
     capacity: "Up to 350 guests",
   },
-  "2-door-9-stall": {
-    name: "2 Door, 9 Stalls",
+  "2-door-10-stall": {
+    name: "2 Door, 10 Stalls",
     config: "Five women's stalls • Two men's stalls with urinals",
     capacity: "Up to 500 guests",
   },

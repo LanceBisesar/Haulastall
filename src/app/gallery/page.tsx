@@ -42,8 +42,8 @@ const trailerModels = [
     layout: "/4-stall-4-door-layout.webp",
   },
   {
-    name: "2 Door, 9 Stalls",
-    slug: "2-door-9-stall",
+    name: "2 Door, 10 Stalls",
+    slug: "2-door-10-stall",
     config: "Five women's stalls • Two men's stalls with urinals",
     capacity: "Up to 500 guests",
     tag: "High Capacity",
