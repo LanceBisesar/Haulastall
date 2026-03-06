@@ -243,12 +243,6 @@ export default function GalleryPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/gallery"
-              className="px-8 py-4 bg-accent text-white font-bold rounded-full hover:bg-accent-dark transition-colors shadow-lg"
-            >
-              View Our Trailers
-            </Link>
-            <Link
-              href="/gallery"
               className="px-8 py-4 bg-white text-primary font-bold rounded-full hover:bg-white/90 transition-colors shadow-lg border border-surface-light"
             >
               Book Your Reservation Online
