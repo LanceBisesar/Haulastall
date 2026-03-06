@@ -8,13 +8,15 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
           {/* Brand */}
           <div>
-            <Image
-              src="/logo.png"
-              alt="Haul-A-Stall"
-              width={200}
-              height={130}
-              className="h-14 w-auto brightness-0 invert mb-4"
-            />
+            <div className="flex items-center gap-3 mb-4">
+              <Image
+                src="/logo.png"
+                alt="Haul-A-Stall"
+                width={200}
+                height={130}
+                className="h-16 w-auto brightness-0 invert"
+              />
+            </div>
             <p className="text-white/60 text-sm leading-relaxed">
               Premium luxury restroom trailers for weddings, events, construction
               sites, and more. Convenient, comfortable, and clean.

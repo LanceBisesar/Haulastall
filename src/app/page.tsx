@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 function HeroSection() {
   return (
@@ -7,6 +8,14 @@ function HeroSection() {
       <div className="absolute top-0 left-0 right-0 h-1 gold-gradient" />
 
       <div className="relative max-w-4xl mx-auto px-4 text-center py-24">
+        <Image
+          src="/logo.png"
+          alt="Haul-A-Stall"
+          width={300}
+          height={195}
+          className="h-24 sm:h-28 w-auto mx-auto mb-6 brightness-0 invert"
+          priority
+        />
         <p className="text-accent font-semibold tracking-[0.3em] uppercase text-xs sm:text-sm mb-6">
           Luxury Restroom Trailers
         </p>
