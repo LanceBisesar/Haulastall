@@ -47,6 +47,8 @@ const trailerModels = [
     config: "Five women's stalls • Two men's stalls with urinals",
     capacity: "Up to 500 guests",
     tag: "High Capacity",
+    image: "/10-stall-2-door.png",
+    layout: "/10-stall-2-door-layout.webp",
   },
   {
     name: "ADA Accessible",
