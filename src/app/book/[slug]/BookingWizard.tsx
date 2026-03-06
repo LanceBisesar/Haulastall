@@ -1,12 +1,23 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 
 interface Trailer {
   name: string;
+  slug: string;
   config: string;
   capacity: string;
+}
+
+interface PriceBreakdown {
+  basePrice: number;
+  distanceMiles: number | null;
+  deliveryFee: number;
+  holidaySurcharge: number;
+  isHoliday: boolean;
+  total: number;
+  capacityWarning: string | null;
 }
 
 const steps = [
@@ -27,6 +38,17 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
   const [contactData, setContactData] = useState<Record<string, string>>({});
   const [eventData, setEventData] = useState<Record<string, string>>({});
 
+  // Pricing state
+  const [pricing, setPricing] = useState<PriceBreakdown | null>(null);
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingError, setPricingError] = useState<string | null>(null);
+
+  // Capacity warning (shown in step 2 as user types)
+  const [capacityWarning, setCapacityWarning] = useState<string | null>(null);
+
+  // Extract max capacity number from trailer.capacity string (e.g. "Up to 250 guests" → 250)
+  const maxCapacity = parseInt(trailer.capacity.replace(/\D/g, ""), 10) || Infinity;
+
   function getFormData(): Record<string, string> {
     if (!formRef.current) return {};
     const fd = new FormData(formRef.current);
@@ -37,6 +59,54 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
     return data;
   }
 
+  // Check guest capacity on input change
+  function handleGuestCountChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const count = parseInt(e.target.value, 10);
+    if (!isNaN(count) && count > maxCapacity) {
+      setCapacityWarning(
+        `This trailer is rated for up to ${maxCapacity} guests. With ${count} guests, we recommend upgrading to a larger trailer or adding a second unit for the best experience.`
+      );
+    } else {
+      setCapacityWarning(null);
+    }
+  }
+
+  // Fetch pricing when we enter step 3
+  const fetchPricing = useCallback(async (evData: Record<string, string>) => {
+    setPricingLoading(true);
+    setPricingError(null);
+    setPricing(null);
+
+    // Extract ZIP from the event/delivery address — try dedicated zip field first, then parse from address
+    const zip = evData.eventZip || "";
+
+    if (!zip || !/^\d{5}$/.test(zip)) {
+      setPricingError("Please go back and enter a valid 5-digit delivery ZIP code.");
+      setPricingLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/pricing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          trailerSlug: trailer.slug,
+          destinationZip: zip,
+          eventDate: evData.eventDate,
+          guestCount: evData.guestCount,
+        }),
+      });
+      if (!res.ok) throw new Error("Pricing request failed");
+      const data: PriceBreakdown = await res.json();
+      setPricing(data);
+    } catch {
+      setPricingError("Unable to calculate pricing. Final pricing will be confirmed by our team.");
+    } finally {
+      setPricingLoading(false);
+    }
+  }, [trailer.slug]);
+
   function handleNext(e: React.FormEvent) {
     e.preventDefault();
     if (!formRef.current?.reportValidity()) return;
@@ -46,8 +116,10 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
       setStep(2);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (step === 2) {
-      setEventData(getFormData());
+      const data = getFormData();
+      setEventData(data);
       setStep(3);
+      fetchPricing(data);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }
@@ -261,6 +333,19 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                 </p>
               </div>
 
+              {/* Capacity Warning Alert */}
+              {capacityWarning && (
+                <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 flex items-start gap-3">
+                  <svg className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <div>
+                    <p className="text-amber-800 font-semibold text-sm">Guest Count Exceeds Capacity</p>
+                    <p className="text-amber-700 text-sm mt-1">{capacityWarning}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-surface-light/60" style={{ boxShadow: "var(--card-shadow)" }}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
@@ -282,7 +367,16 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                     <label htmlFor="guestCount" className="block text-sm font-medium text-foreground mb-1.5">
                       Estimated Guest Count <span className="text-red-500">*</span>
                     </label>
-                    <input type="number" id="guestCount" name="guestCount" min="1" required defaultValue={eventData.guestCount || ""} className={inputStyles} />
+                    <input
+                      type="number"
+                      id="guestCount"
+                      name="guestCount"
+                      min="1"
+                      required
+                      defaultValue={eventData.guestCount || ""}
+                      onChange={handleGuestCountChange}
+                      className={inputStyles}
+                    />
                   </div>
                   <div>
                     <label htmlFor="eventDate" className="block text-sm font-medium text-foreground mb-1.5">
@@ -310,6 +404,23 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                       className={`${inputStyles} placeholder:text-muted-light`}
                     />
                   </div>
+                  <div>
+                    <label htmlFor="eventZip" className="block text-sm font-medium text-foreground mb-1.5">
+                      Delivery ZIP Code <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="eventZip"
+                      name="eventZip"
+                      required
+                      pattern="\d{5}"
+                      maxLength={5}
+                      defaultValue={eventData.eventZip || ""}
+                      placeholder="e.g. 10001"
+                      className={`${inputStyles} placeholder:text-muted-light`}
+                    />
+                  </div>
+                  <div />
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Is there a water hose spigot within 100 ft? <span className="text-red-500">*</span>
@@ -382,11 +493,89 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                   Review & Payment
                 </h2>
                 <p className="text-muted text-sm">
-                  Review your event details and complete your reservation.
+                  Review your pricing estimate and complete your reservation.
                 </p>
               </div>
 
-              {/* Event Details Summary at top */}
+              {/* Pricing Breakdown */}
+              <div className="bg-white rounded-2xl p-6 sm:p-8 border-2 border-accent/30" style={{ boxShadow: "var(--card-shadow)" }}>
+                <h3 className="font-display text-lg font-bold text-foreground mb-5 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Price Estimate
+                </h3>
+
+                {pricingLoading && (
+                  <div className="flex items-center gap-3 text-muted py-4">
+                    <div className="w-5 h-5 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
+                    Calculating your price...
+                  </div>
+                )}
+
+                {pricingError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+                    {pricingError}
+                  </div>
+                )}
+
+                {pricing && (
+                  <div className="space-y-3">
+                    <div className="flex justify-between py-2 border-b border-surface-light/60">
+                      <span className="text-muted">Base rental ({trailer.name})</span>
+                      <span className="font-semibold text-foreground">${pricing.basePrice.toLocaleString()}</span>
+                    </div>
+
+                    <div className="flex justify-between py-2 border-b border-surface-light/60">
+                      <span className="text-muted">
+                        Delivery fee
+                        {pricing.distanceMiles !== null && (
+                          <span className="text-xs ml-1">
+                            ({pricing.distanceMiles} mi{pricing.distanceMiles <= 10 ? " — within free zone" : ` — ${pricing.distanceMiles - 10} mi × $5`})
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        {pricing.deliveryFee === 0 ? "FREE" : `$${pricing.deliveryFee.toLocaleString()}`}
+                      </span>
+                    </div>
+
+                    {pricing.isHoliday && (
+                      <div className="flex justify-between py-2 border-b border-surface-light/60">
+                        <span className="text-muted">
+                          Holiday surcharge
+                          <span className="text-xs ml-1">(10%)</span>
+                        </span>
+                        <span className="font-semibold text-foreground">${pricing.holidaySurcharge.toLocaleString()}</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between py-3 mt-2 border-t-2 border-foreground/10">
+                      <span className="text-lg font-bold text-foreground">Estimated Total</span>
+                      <span className="text-lg font-bold text-accent">${pricing.total.toLocaleString()}</span>
+                    </div>
+
+                    {/* Capacity warning in review */}
+                    {pricing.capacityWarning && (
+                      <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 flex items-start gap-3 mt-4">
+                        <svg className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <div>
+                          <p className="text-amber-800 font-semibold text-sm">Guest Count Exceeds Capacity</p>
+                          <p className="text-amber-700 text-sm mt-1">{pricing.capacityWarning}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <p className="text-xs text-muted-light mt-2">
+                      This is an estimate based on straight-line distance. Final pricing may be adjusted based on actual driving distance and will be confirmed by our team.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Event Details Summary */}
               <div className="bg-surface rounded-2xl p-6 border border-surface-light">
                 <h3 className="font-display text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                   <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -434,6 +623,10 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                     <span className="font-medium text-foreground text-right">{eventData.eventAddress}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-surface-light/60">
+                    <span className="text-muted">Delivery ZIP</span>
+                    <span className="font-medium text-foreground">{eventData.eventZip}</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-surface-light/60">
                     <span className="text-muted">Water Access</span>
                     <span className="font-medium text-foreground capitalize">{eventData.waterAccess}</span>
                   </div>
@@ -442,9 +635,6 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                     <span className="font-medium text-foreground capitalize">{eventData.powerAccess}</span>
                   </div>
                 </div>
-                <p className="text-xs text-muted-light mt-4">
-                  Final pricing will be confirmed via email after submission based on event details and delivery location.
-                </p>
               </div>
 
               {/* Payment Details */}

@@ -4,35 +4,41 @@ import { notFound } from "next/navigation";
 
 const trailerModels: Record<
   string,
-  { name: string; config: string; capacity: string }
+  { name: string; slug: string; config: string; capacity: string }
 > = {
   "2-door-2-stall": {
     name: "2 Door, 2 Stalls",
+    slug: "2-door-2-stall",
     config: "Women's private toilet • Men's private toilet with urinal",
     capacity: "Up to 175 guests",
   },
   "2-door-5-stall": {
     name: "2 Door, 5 Stalls",
+    slug: "2-door-5-stall",
     config: "Three women's stalls • Two men's stalls with urinal",
     capacity: "Up to 250 guests",
   },
   "3-door-3-stall": {
     name: "3 Door, 3 Stalls",
+    slug: "3-door-3-stall",
     config: "Two women's private stalls • Men's private stall with urinal",
     capacity: "Up to 175 guests",
   },
   "4-door-4-stall": {
     name: "4 Door, 4 Stalls",
+    slug: "4-door-4-stall",
     config: "Two women's stalls • Two men's private stalls with urinals",
     capacity: "Up to 350 guests",
   },
   "2-door-10-stall": {
     name: "2 Door, 10 Stalls",
+    slug: "2-door-10-stall",
     config: "Five women's stalls • Two men's stalls with urinals",
     capacity: "Up to 500 guests",
   },
   "8-door-8-stall": {
     name: "8 Door, 8 Stalls",
+    slug: "8-door-8-stall",
     config: "Four women's stalls • Four men's stalls with urinals",
     capacity: "Up to 700 guests",
   },
