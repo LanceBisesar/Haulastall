@@ -15,6 +15,7 @@ interface PriceBreakdown {
   weekendCount: number;
   rentalDays: number;
   basePrice: number;
+  basePriceCapped: boolean;
   distanceMiles: number | null;
   deliveryFee: number;
   waterFee: number;
@@ -22,10 +23,14 @@ interface PriceBreakdown {
   holidayCount: number;
   holidaySurcharge: number;
   isHoliday: boolean;
+  pumpOutCount: number;
+  pumpOutFee: number;
   creditCardFee: number;
   totalWithCard: number;
   totalWithBank: number;
   capacityWarning: string | null;
+  longTermRental: boolean;
+  longTermMessage: string | null;
 }
 
 const steps = [
@@ -558,11 +563,30 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                   </div>
                 )}
 
-                {pricing && (
+                {pricing && pricing.longTermRental && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center">
+                    <svg className="w-10 h-10 text-blue-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <p className="text-blue-800 font-semibold text-base mb-2">Long-Term Rental</p>
+                    <p className="text-blue-700 text-sm">{pricing.longTermMessage}</p>
+                    <a
+                      href="/quote"
+                      className="inline-block mt-4 px-6 py-2.5 bg-accent text-white font-semibold rounded-full hover:bg-accent-dark transition-colors text-sm"
+                    >
+                      Complete Quote Inquiry
+                    </a>
+                  </div>
+                )}
+
+                {pricing && !pricing.longTermRental && (
                   <div className="space-y-3">
                     <div className="flex justify-between py-2 border-b border-surface-light/60">
                       <span className="text-muted">
                         Base rental ({trailer.name})
+                        {pricing.basePriceCapped && (
+                          <span className="text-xs ml-1">(capped at 4&times; weekend rate)</span>
+                        )}
                       </span>
                       <span className="font-semibold text-foreground">${pricing.basePrice.toLocaleString()}</span>
                     </div>
@@ -603,6 +627,18 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                           )}
                         </span>
                         <span className="font-semibold text-foreground">${pricing.holidaySurcharge.toLocaleString()}</span>
+                      </div>
+                    )}
+
+                    {pricing.pumpOutFee > 0 && (
+                      <div className="flex justify-between py-2 border-b border-surface-light/60">
+                        <span className="text-muted">
+                          Pump out service
+                          <span className="text-xs ml-1">
+                            &mdash; $500 &times; {pricing.pumpOutCount} service{pricing.pumpOutCount > 1 ? "s" : ""}
+                          </span>
+                        </span>
+                        <span className="font-semibold text-foreground">${pricing.pumpOutFee.toLocaleString()}</span>
                       </div>
                     )}
 

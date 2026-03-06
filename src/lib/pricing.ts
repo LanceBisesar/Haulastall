@@ -31,6 +31,10 @@ export const EXTRA_WEEKEND_DAY_FEE = 100; // $100 per extra weekend day (Fri/Sat
 export const WATER_FEE = 100; // $100 when no water spigot available
 export const GENERATOR_FEE = 300; // $300 when no power outlet available
 export const CREDIT_CARD_FEE = 0.03; // 3%
+export const PUMP_OUT_FEE = 500; // $500 per pump-out service
+export const PUMP_OUT_INTERVAL_DAYS = 7; // pump-out required every 7 days
+export const BASE_PRICE_CAP_MULTIPLIER = 4; // cap base price at 4× the per-weekend rate
+export const LONG_TERM_RENTAL_THRESHOLD = 28; // rentals > 28 days require manual quote
 
 /**
  * Returns major US holiday dates for a given year.
@@ -232,6 +236,7 @@ export interface PriceBreakdown {
   weekendCount: number;
   rentalDays: number;
   basePrice: number;
+  basePriceCapped: boolean;
   distanceMiles: number | null;
   deliveryFee: number;
   waterFee: number;
@@ -239,10 +244,14 @@ export interface PriceBreakdown {
   holidayCount: number;
   holidaySurcharge: number;
   isHoliday: boolean;
+  pumpOutCount: number;
+  pumpOutFee: number;
   creditCardFee: number;
   totalWithCard: number;
   totalWithBank: number;
   capacityWarning: string | null;
+  longTermRental: boolean;
+  longTermMessage: string | null;
 }
 
 export async function calculatePrice(
@@ -261,16 +270,54 @@ export async function calculatePrice(
   const startDate = new Date(eventDate + "T00:00:00");
   const endDate = new Date(eventEndDate + "T00:00:00");
 
+  const { totalDays: rentalDays } = countExtraDays(startDate, endDate);
+
+  // Long-term rental check — rentals > 28 days require manual quote
+  if (rentalDays > LONG_TERM_RENTAL_THRESHOLD) {
+    return {
+      basePricePerWeekend,
+      weekendCount: 0,
+      rentalDays,
+      basePrice: 0,
+      basePriceCapped: false,
+      distanceMiles: null,
+      deliveryFee: 0,
+      waterFee: 0,
+      generatorFee: 0,
+      holidayCount: 0,
+      isHoliday: false,
+      holidaySurcharge: 0,
+      pumpOutCount: 0,
+      pumpOutFee: 0,
+      creditCardFee: 0,
+      totalWithCard: 0,
+      totalWithBank: 0,
+      capacityWarning: null,
+      longTermRental: true,
+      longTermMessage:
+        "Please contact the company for long term rentals. Please complete the quote inquiry or call 844-417-8255.",
+    };
+  }
+
   // Weekend multiplier: base price × number of weekends
   const weekendCount = countWeekends(startDate, endDate);
   const weekendTotal = basePricePerWeekend * weekendCount;
 
   // Extra day charges: $50/weekday, $100/weekend day (beyond the first day)
-  const { extraWeekdays, extraWeekendDays, totalDays: rentalDays } = countExtraDays(startDate, endDate);
+  const { extraWeekdays, extraWeekendDays } = countExtraDays(startDate, endDate);
   const extraDayCharge = (extraWeekdays * EXTRA_WEEKDAY_FEE) + (extraWeekendDays * EXTRA_WEEKEND_DAY_FEE);
 
-  // Base price = weekend total + extra day charges (shown as one line)
-  const basePrice = weekendTotal + extraDayCharge;
+  // Base price = weekend total + extra day charges, capped at 4× per-weekend rate
+  const basePriceCap = basePricePerWeekend * BASE_PRICE_CAP_MULTIPLIER;
+  const uncappedBasePrice = weekendTotal + extraDayCharge;
+  const basePrice = Math.min(uncappedBasePrice, basePriceCap);
+  const basePriceCapped = uncappedBasePrice > basePriceCap;
+
+  // Pump-out service — $500 for every 7 days when rental exceeds 7 days
+  const pumpOutCount = rentalDays > PUMP_OUT_INTERVAL_DAYS
+    ? Math.floor(rentalDays / PUMP_OUT_INTERVAL_DAYS)
+    : 0;
+  const pumpOutFee = pumpOutCount * PUMP_OUT_FEE;
 
   // Distance — delivery fee is charged once
   const distanceMiles = await getDistanceFromOrigin(destinationZip);
@@ -295,7 +342,7 @@ export async function calculatePrice(
     capacityWarning = `This trailer is rated for up to ${maxCapacity} guests. With ${guestCount} guests, we recommend upgrading to a larger trailer or adding a second unit for the best experience.`;
   }
 
-  const subtotal = basePrice + deliveryFee + waterFee + generatorFee + holidaySurcharge;
+  const subtotal = basePrice + deliveryFee + waterFee + generatorFee + holidaySurcharge + pumpOutFee;
   const creditCardFee = Math.round(subtotal * CREDIT_CARD_FEE);
   const totalWithCard = subtotal + creditCardFee;
   const totalWithBank = subtotal;
@@ -305,6 +352,7 @@ export async function calculatePrice(
     weekendCount,
     rentalDays,
     basePrice,
+    basePriceCapped,
     distanceMiles,
     deliveryFee,
     waterFee,
@@ -312,9 +360,13 @@ export async function calculatePrice(
     holidayCount,
     isHoliday: holidayCount > 0,
     holidaySurcharge,
+    pumpOutCount,
+    pumpOutFee,
     creditCardFee,
     totalWithCard,
     totalWithBank,
     capacityWarning,
+    longTermRental: false,
+    longTermMessage: null,
   };
 }
