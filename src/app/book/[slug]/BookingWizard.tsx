@@ -584,9 +584,6 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                     <div className="flex justify-between py-2 border-b border-surface-light/60">
                       <span className="text-muted">
                         Base rental ({trailer.name})
-                        {pricing.basePriceCapped && (
-                          <span className="text-xs ml-1">(capped at 4&times; weekend rate)</span>
-                        )}
                       </span>
                       <span className="font-semibold text-foreground">${pricing.basePrice.toLocaleString()}</span>
                     </div>
@@ -635,7 +632,7 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                         <span className="text-muted">
                           Pump out service
                           <span className="text-xs ml-1">
-                            &mdash; $500 &times; {pricing.pumpOutCount} service{pricing.pumpOutCount > 1 ? "s" : ""}
+                            &mdash; $350 &times; {pricing.pumpOutCount} service{pricing.pumpOutCount > 1 ? "s" : ""}
                           </span>
                         </span>
                         <span className="font-semibold text-foreground">${pricing.pumpOutFee.toLocaleString()}</span>

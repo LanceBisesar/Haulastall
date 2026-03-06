@@ -22,7 +22,7 @@ const sections = [
   },
   {
     title: "Rental Rate and Terms",
-    body: 'The Portable Restroom Trailer is delivered free of visible damage and or graffiti. The Customer will be responsible and charged for any damages or replacement costs incurred from repairing damage. Customer agrees to pay all charges due to the company during the rental period outlined in the quote or invoice from the company. All invoices are deemed "due on receipt". Customer will be responsible for all collection expense rising out of the company\u2019s efforts to collect due money. For rentals longer than 1 week, the waste tank must be pumped at least weekly at a fee of $500.00 per clean out service. Emergency visits are billed additional $100.00 per hour plus mileage. Emergency Pump services are $500.00 on weekdays and $750.00 on weekends per pump service, due prior to or upon service.',
+    body: 'The Portable Restroom Trailer is delivered free of visible damage and or graffiti. The Customer will be responsible and charged for any damages or replacement costs incurred from repairing damage. Customer agrees to pay all charges due to the company during the rental period outlined in the quote or invoice from the company. All invoices are deemed "due on receipt". Customer will be responsible for all collection expense rising out of the company\u2019s efforts to collect due money. For rentals longer than 1 week, the waste tank must be pumped at least weekly at a fee of $600.00 per clean out service. Emergency visits are billed additional $100.00 per hour plus mileage. Emergency Pump services are $600.00 on weekdays and $750.00 on weekends per pump service, due prior to or upon service.',
   },
   {
     title: "Monthly Rentals",
