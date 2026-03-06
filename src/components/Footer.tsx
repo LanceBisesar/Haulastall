@@ -9,11 +9,11 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt="Haul-A-Stall"
               width={180}
-              height={40}
-              className="h-9 w-auto brightness-0 invert mb-4"
+              height={117}
+              className="h-12 w-auto brightness-0 invert mb-4"
             />
             <p className="text-white/60 text-sm leading-relaxed">
               Premium luxury restroom trailers for weddings, events, construction
