@@ -16,9 +16,7 @@ const exteriorPhotos = [
 ];
 
 const interiorPhotos = [
-  { src: "/interior-common-area.webp", alt: "Common Area Restroom Interior" },
-  { src: "/interior-stall-1.webp", alt: "Restroom Stall Interior" },
-  { src: "/interior-luxury-womens.jpg", alt: "Luxury Women's Restroom" },
+{ src: "/interior-luxury-womens.jpg", alt: "Luxury Women's Restroom" },
   { src: "/interior-womens.jpg", alt: "Women's Interior" },
   { src: "/interior-mens.jpg", alt: "Men's Interior" },
   { src: "/interior-singular-mens.jpg", alt: "Men's Single Stall" },
