@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Gallery | Haul-A-Stall Luxury Restroom Trailers",
+  title: "Our Trailers | Haul-A-Stall Luxury Restroom Trailers",
   description:
     "Browse our fleet of luxury restroom trailers. See the quality and elegance that sets Haul-A-Stall apart.",
 };
@@ -11,40 +11,46 @@ export const metadata: Metadata = {
 const trailerModels = [
   {
     name: "2 Door, 2 Stalls",
+    slug: "2-door-2-stall",
     config: "Women's private toilet • Men's private toilet with urinal",
-    capacity: "Up to 100 guests",
+    capacity: "Up to 175 guests",
     tag: "Intimate Events",
     image: "/2-stall-2-door.webp",
     layout: "/2-stall-2-door-layout.webp",
   },
   {
     name: "2 Door, 4 Stalls",
+    slug: "2-door-4-stall",
     config: "Three women's stalls • One men's stall with urinal",
     capacity: "Up to 200 guests",
     tag: "Most Popular",
   },
   {
     name: "3 Door, 3 Stalls",
+    slug: "3-door-3-stall",
     config: "Two women's private stalls • Men's private stall with urinal",
     capacity: "Up to 175 guests",
     tag: "Versatile",
   },
   {
     name: "4 Door, 4 Stalls",
+    slug: "4-door-4-stall",
     config: "Two women's stalls • Two men's private stalls with urinals",
-    capacity: "Up to 250 guests",
+    capacity: "Up to 350 guests",
     tag: "Large Events",
     image: "/4-stall-4-door.webp",
     layout: "/4-stall-4-door-layout.webp",
   },
   {
     name: "2 Door, 9 Stalls",
+    slug: "2-door-9-stall",
     config: "Five women's stalls • Two men's stalls with urinals",
     capacity: "Up to 500 guests",
     tag: "High Capacity",
   },
   {
     name: "ADA Accessible",
+    slug: "ada-accessible",
     config: "Wheelchair accessible stall with grab bars and wide doorway",
     capacity: "ADA compliant",
     tag: "Accessible",
@@ -97,7 +103,7 @@ export default function GalleryPage() {
             Our Fleet
           </p>
           <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-            Luxury Restroom Trailers
+            Our Trailers
           </h1>
           <p className="text-white/60 max-w-xl mx-auto">
             Browse our selection of premium trailers. Each unit features elegant
@@ -120,9 +126,10 @@ export default function GalleryPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {trailerModels.map((model) => (
-              <div
+              <Link
                 key={model.name}
-                className="card-hover bg-white rounded-2xl overflow-hidden border border-surface-light/60"
+                href={`/book/${model.slug}`}
+                className="card-hover bg-white rounded-2xl overflow-hidden border border-surface-light/60 block cursor-pointer"
                 style={{ boxShadow: "var(--card-shadow)" }}
               >
                 {/* Trailer image */}
@@ -184,8 +191,11 @@ export default function GalleryPage() {
                     </svg>
                     {model.capacity}
                   </div>
+                  <span className="inline-flex items-center gap-1 text-accent-dark text-xs font-semibold mt-3">
+                    Book Now &rarr;
+                  </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

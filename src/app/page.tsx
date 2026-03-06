@@ -30,6 +30,12 @@ function HeroSection() {
           </Link>
           <Link
             href="/gallery"
+            className="px-8 py-4 bg-white text-primary font-bold rounded-full hover:bg-white/90 transition-colors text-base shadow-lg"
+          >
+            Book Your Reservation Online
+          </Link>
+          <Link
+            href="/gallery"
             className="px-8 py-4 border-2 border-white/30 text-white font-medium rounded-full hover:bg-white/10 transition-colors text-base"
           >
             View Our Trailers
