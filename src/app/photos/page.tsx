@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -6,6 +7,15 @@ export const metadata: Metadata = {
   description:
     "View photos of our luxury restroom trailers — interiors, exteriors, and event setups.",
 };
+
+const exteriorPhotos = [
+  { src: "/2-stall-2-door.webp", alt: "2 Stall 2 Door Trailer — Exterior" },
+  { src: "/5-stall-2-door.jpg", alt: "5 Stall 2 Door Trailer — Exterior" },
+  { src: "/4-stall-4-door.webp", alt: "4 Stall 4 Door Trailer — Exterior" },
+  { src: "/10-stall-2-door.png", alt: "10 Stall 2 Door Trailer — Exterior" },
+];
+
+const interiorPhotos: { src: string; alt: string }[] = [];
 
 export default function PhotosPage() {
   return (
@@ -27,59 +37,98 @@ export default function PhotosPage() {
         </div>
       </section>
 
-      {/* Gallery Grid - placeholder for images */}
+      {/* Exterior Section */}
       <section className="py-20 sm:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <p className="text-accent font-semibold tracking-[0.2em] uppercase text-xs mb-3">
-              Our Work
+              Our Fleet
             </p>
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground gold-underline">
-              Event Photos
+              Exterior
             </h2>
           </div>
 
-          {/* Placeholder grid - ready for images */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {exteriorPhotos.map((photo) => (
               <div
-                key={i}
-                className="aspect-[4/3] bg-gradient-to-br from-surface to-surface-light rounded-2xl border border-surface-light/60 flex items-center justify-center"
+                key={photo.src}
+                className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-surface-light/60"
                 style={{ boxShadow: "var(--card-shadow)" }}
               >
-                <div className="text-center">
-                  <svg
-                    className="w-12 h-12 text-accent/25 mx-auto mb-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <p className="text-muted-light text-xs">Coming soon</p>
-                </div>
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                />
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <p className="text-center text-muted text-sm mt-10">
-            More photos coming soon. Want to see our trailers in person?{" "}
-            <Link href="/contact" className="text-accent font-semibold hover:text-accent-dark transition-colors">
-              Contact us
-            </Link>{" "}
-            to schedule a viewing.
-          </p>
+      {/* Interior Section */}
+      <section className="py-20 sm:py-24 bg-surface relative pattern-overlay">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <p className="text-accent font-semibold tracking-[0.2em] uppercase text-xs mb-3">
+              Step Inside
+            </p>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground gold-underline">
+              Interior
+            </h2>
+          </div>
+
+          {interiorPhotos.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {interiorPhotos.map((photo) => (
+                <div
+                  key={photo.src}
+                  className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-surface-light/60"
+                  style={{ boxShadow: "var(--card-shadow)" }}
+                >
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <svg
+                className="w-16 h-16 text-accent/25 mx-auto mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <p className="text-muted text-sm">
+                Interior photos coming soon. Want to see our trailers in person?{" "}
+                <Link href="/contact" className="text-accent font-semibold hover:text-accent-dark transition-colors">
+                  Contact us
+                </Link>{" "}
+                to schedule a viewing.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-16 sm:py-20 bg-surface relative pattern-overlay">
-        <div className="relative max-w-2xl mx-auto px-4 text-center">
+      <section className="py-16 sm:py-20">
+        <div className="max-w-2xl mx-auto px-4 text-center">
           <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-4">
             Like What You See?
           </h2>
