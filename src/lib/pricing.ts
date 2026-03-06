@@ -24,8 +24,12 @@ export const FREE_MILES = 15;
 export const DELIVERY_BASE_FEE = 100; // flat delivery fee
 export const PER_MILE_RATE = 5; // dollars per mile beyond free radius
 
-// ── Holiday surcharge ─────────────────────────────────────────────
-export const HOLIDAY_SURCHARGE = 0.15; // 15%
+// ── Surcharges & fees ────────────────────────────────────────────
+export const HOLIDAY_FEE = 150; // flat $150 per holiday
+export const EXTRA_WEEKDAY_FEE = 50; // $50 per extra weekday (Mon-Thu)
+export const EXTRA_WEEKEND_DAY_FEE = 100; // $100 per extra weekend day (Fri/Sat/Sun)
+export const WATER_FEE = 100; // $100 when no water spigot available
+export const GENERATOR_FEE = 300; // $300 when no power outlet available
 export const CREDIT_CARD_FEE = 0.03; // 3%
 
 /**
@@ -74,14 +78,18 @@ export function isHoliday(date: Date): boolean {
   return holidays.some((h) => dateToString(h) === dateStr);
 }
 
-/** Check if ANY date in a range falls on or near a major US holiday */
-export function isHolidayInRange(startDate: Date, endDate: Date): boolean {
-  const d = new Date(startDate);
-  while (d <= endDate) {
-    if (isHoliday(d)) return true;
-    d.setDate(d.getDate() + 1);
+/** Count how many holiday dates fall within a range */
+export function countHolidaysInRange(startDate: Date, endDate: Date): number {
+  // Collect unique holiday date strings across all years in the range
+  const holidaySet = new Set<string>();
+  for (let y = startDate.getFullYear(); y <= endDate.getFullYear(); y++) {
+    for (const h of getHolidayDates(y)) {
+      if (h >= startDate && h <= endDate) {
+        holidaySet.add(dateToString(h));
+      }
+    }
   }
-  return false;
+  return holidaySet.size;
 }
 
 /**
@@ -105,6 +113,27 @@ export function countWeekends(startDate: Date, endDate: Date): number {
     d.setDate(d.getDate() + 1);
   }
   return Math.max(1, weekendSundays.size);
+}
+
+/** Count extra weekdays and weekend days in a rental (beyond the first day) */
+export function countExtraDays(startDate: Date, endDate: Date): { extraWeekdays: number; extraWeekendDays: number; totalDays: number } {
+  const ms = endDate.getTime() - startDate.getTime();
+  const totalDays = Math.max(1, Math.round(ms / 86400000) + 1);
+  let extraWeekdays = 0;
+  let extraWeekendDays = 0;
+  // Skip the first day (included in base), count from day 2 onward
+  const d = new Date(startDate);
+  d.setDate(d.getDate() + 1);
+  while (d <= endDate) {
+    const day = d.getDay();
+    if (day === 5 || day === 6 || day === 0) {
+      extraWeekendDays++;
+    } else {
+      extraWeekdays++;
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return { extraWeekdays, extraWeekendDays, totalDays };
 }
 
 function dateToString(d: Date): string {
@@ -187,9 +216,13 @@ export async function getDistanceFromOrigin(destinationZip: string): Promise<num
 export interface PriceBreakdown {
   basePricePerWeekend: number;
   weekendCount: number;
+  rentalDays: number;
   basePrice: number;
   distanceMiles: number | null;
   deliveryFee: number;
+  waterFee: number;
+  generatorFee: number;
+  holidayCount: number;
   holidaySurcharge: number;
   isHoliday: boolean;
   creditCardFee: number;
@@ -202,32 +235,45 @@ export async function calculatePrice(
   trailerSlug: string,
   destinationZip: string,
   eventDate: string,
+  eventEndDate: string,
   guestCount?: number,
-  eventEndDate?: string
+  waterAccess?: boolean,
+  powerAccess?: boolean
 ): Promise<PriceBreakdown> {
   const basePricePerWeekend = TRAILER_PRICES[trailerSlug] ?? 0;
   const maxCapacity = TRAILER_CAPACITY[trailerSlug] ?? Infinity;
 
   // Determine rental date range
   const startDate = new Date(eventDate + "T00:00:00");
-  const endDate = eventEndDate
-    ? new Date(eventEndDate + "T00:00:00")
-    : startDate;
+  const endDate = new Date(eventEndDate + "T00:00:00");
 
-  // Count weekends in the rental period (base price × number of weekends)
+  // Weekend multiplier: base price × number of weekends
   const weekendCount = countWeekends(startDate, endDate);
-  const basePrice = basePricePerWeekend * weekendCount;
+  const weekendTotal = basePricePerWeekend * weekendCount;
 
-  // Distance — delivery fee is charged once regardless of weekends
+  // Extra day charges: $50/weekday, $100/weekend day (beyond the first day)
+  const { extraWeekdays, extraWeekendDays, totalDays: rentalDays } = countExtraDays(startDate, endDate);
+  const extraDayCharge = (extraWeekdays * EXTRA_WEEKDAY_FEE) + (extraWeekendDays * EXTRA_WEEKEND_DAY_FEE);
+
+  // Base price = weekend total + extra day charges (shown as one line)
+  const basePrice = weekendTotal + extraDayCharge;
+
+  // Distance — delivery fee is charged once
   const distanceMiles = await getDistanceFromOrigin(destinationZip);
   let deliveryFee = DELIVERY_BASE_FEE;
   if (distanceMiles !== null && distanceMiles > FREE_MILES) {
     deliveryFee += (distanceMiles - FREE_MILES) * PER_MILE_RATE;
   }
 
-  // Holiday check — applies if ANY day in the range is a holiday
-  const holidayFlag = isHolidayInRange(startDate, endDate);
-  const holidaySurcharge = holidayFlag ? Math.round(basePrice * HOLIDAY_SURCHARGE) : 0;
+  // Water fee — $100 when no water spigot available
+  const waterFee = waterAccess === false ? WATER_FEE : 0;
+
+  // Generator fee — $300 when no power outlet available
+  const generatorFee = powerAccess === false ? GENERATOR_FEE : 0;
+
+  // Holiday check — flat $150 per holiday in the range
+  const holidayCount = countHolidaysInRange(startDate, endDate);
+  const holidaySurcharge = holidayCount * HOLIDAY_FEE;
 
   // Capacity warning
   let capacityWarning: string | null = null;
@@ -235,7 +281,7 @@ export async function calculatePrice(
     capacityWarning = `This trailer is rated for up to ${maxCapacity} guests. With ${guestCount} guests, we recommend upgrading to a larger trailer or adding a second unit for the best experience.`;
   }
 
-  const subtotal = basePrice + deliveryFee + holidaySurcharge;
+  const subtotal = basePrice + deliveryFee + waterFee + generatorFee + holidaySurcharge;
   const creditCardFee = Math.round(subtotal * CREDIT_CARD_FEE);
   const totalWithCard = subtotal + creditCardFee;
   const totalWithBank = subtotal;
@@ -243,10 +289,14 @@ export async function calculatePrice(
   return {
     basePricePerWeekend,
     weekendCount,
+    rentalDays,
     basePrice,
     distanceMiles,
     deliveryFee,
-    isHoliday: holidayFlag,
+    waterFee,
+    generatorFee,
+    holidayCount,
+    isHoliday: holidayCount > 0,
     holidaySurcharge,
     creditCardFee,
     totalWithCard,

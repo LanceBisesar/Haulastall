@@ -13,9 +13,13 @@ interface Trailer {
 interface PriceBreakdown {
   basePricePerWeekend: number;
   weekendCount: number;
+  rentalDays: number;
   basePrice: number;
   distanceMiles: number | null;
   deliveryFee: number;
+  waterFee: number;
+  generatorFee: number;
+  holidayCount: number;
   holidaySurcharge: number;
   isHoliday: boolean;
   creditCardFee: number;
@@ -50,8 +54,11 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
   // Capacity warning (shown in step 2 as user types)
   const [capacityWarning, setCapacityWarning] = useState<string | null>(null);
 
-  // Payment method
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank">("card");
+  // Payment method — default to bank
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "bank">("bank");
+
+  // Credit card fee alert
+  const [showCcAlert, setShowCcAlert] = useState(false);
 
   // Extract max capacity number from trailer.capacity string (e.g. "Up to 250 guests" → 250)
   const maxCapacity = parseInt(trailer.capacity.replace(/\D/g, ""), 10) || Infinity;
@@ -78,13 +85,18 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
     }
   }
 
+  // Handle switching to credit card — show alert
+  function handleSwitchToCard() {
+    setPaymentMethod("card");
+    setShowCcAlert(true);
+  }
+
   // Fetch pricing when we enter step 3
   const fetchPricing = useCallback(async (evData: Record<string, string>) => {
     setPricingLoading(true);
     setPricingError(null);
     setPricing(null);
 
-    // Extract ZIP from the event/delivery address — try dedicated zip field first, then parse from address
     const zip = evData.eventZip || "";
 
     if (!zip || !/^\d{5}$/.test(zip)) {
@@ -101,8 +113,10 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
           trailerSlug: trailer.slug,
           destinationZip: zip,
           eventDate: evData.eventDate,
-          eventEndDate: evData.eventEndDate || undefined,
+          eventEndDate: evData.eventEndDate,
           guestCount: evData.guestCount,
+          waterAccess: evData.waterAccess,
+          powerAccess: evData.powerAccess,
         }),
       });
       if (!res.ok) throw new Error("Pricing request failed");
@@ -125,6 +139,11 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (step === 2) {
       const data = getFormData();
+      // Validate end date is not before start date
+      if (data.eventDate && data.eventEndDate && data.eventEndDate < data.eventDate) {
+        alert("Pick-up date cannot be before the delivery date.");
+        return;
+      }
       setEventData(data);
       setStep(3);
       fetchPricing(data);
@@ -388,15 +407,15 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                   </div>
                   <div>
                     <label htmlFor="eventDate" className="block text-sm font-medium text-foreground mb-1.5">
-                      Event Date <span className="text-red-500">*</span>
+                      Event Start Date (Delivery Date) <span className="text-red-500">*</span>
                     </label>
                     <input type="date" id="eventDate" name="eventDate" required defaultValue={eventData.eventDate || ""} className={inputStyles} />
                   </div>
                   <div>
                     <label htmlFor="eventEndDate" className="block text-sm font-medium text-foreground mb-1.5">
-                      Event End Date
+                      Event End Date (Pick-Up Date) <span className="text-red-500">*</span>
                     </label>
-                    <input type="date" id="eventEndDate" name="eventEndDate" defaultValue={eventData.eventEndDate || ""} className={inputStyles} />
+                    <input type="date" id="eventEndDate" name="eventEndDate" required defaultValue={eventData.eventEndDate || ""} className={inputStyles} />
                   </div>
                   <div className="sm:col-span-2">
                     <label htmlFor="eventAddress" className="block text-sm font-medium text-foreground mb-1.5">
@@ -532,11 +551,6 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                     <div className="flex justify-between py-2 border-b border-surface-light/60">
                       <span className="text-muted">
                         Base rental ({trailer.name})
-                        {pricing.weekendCount > 1 && (
-                          <span className="text-xs ml-1">
-                            &mdash; ${pricing.basePricePerWeekend.toLocaleString()} &times; {pricing.weekendCount} weekends
-                          </span>
-                        )}
                       </span>
                       <span className="font-semibold text-foreground">${pricing.basePrice.toLocaleString()}</span>
                     </div>
@@ -546,9 +560,36 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                       <span className="font-semibold text-foreground">${pricing.deliveryFee.toLocaleString()}</span>
                     </div>
 
+                    {pricing.waterFee > 0 && (
+                      <div className="flex justify-between py-2 border-b border-surface-light/60">
+                        <span className="text-muted">
+                          Water charge
+                          <span className="text-xs ml-1">(we will deliver with water on board)</span>
+                        </span>
+                        <span className="font-semibold text-foreground">${pricing.waterFee.toLocaleString()}</span>
+                      </div>
+                    )}
+
+                    {pricing.generatorFee > 0 && (
+                      <div className="flex justify-between py-2 border-b border-surface-light/60">
+                        <span className="text-muted">
+                          Generator charge
+                          <span className="text-xs ml-1">(no power available)</span>
+                        </span>
+                        <span className="font-semibold text-foreground">${pricing.generatorFee.toLocaleString()}</span>
+                      </div>
+                    )}
+
                     {pricing.isHoliday && (
                       <div className="flex justify-between py-2 border-b border-surface-light/60">
-                        <span className="text-muted">Holiday surcharge</span>
+                        <span className="text-muted">
+                          Holiday surcharge
+                          {pricing.holidayCount > 1 && (
+                            <span className="text-xs ml-1">
+                              &mdash; $150 &times; {pricing.holidayCount} holiday days
+                            </span>
+                          )}
+                        </span>
                         <span className="font-semibold text-foreground">${pricing.holidaySurcharge.toLocaleString()}</span>
                       </div>
                     )}
@@ -621,15 +662,13 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                     <span className="font-medium text-foreground">{eventData.guestCount}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-surface-light/60">
-                    <span className="text-muted">Event Date</span>
+                    <span className="text-muted">Delivery Date</span>
                     <span className="font-medium text-foreground">{eventData.eventDate}</span>
                   </div>
-                  {eventData.eventEndDate && (
-                    <div className="flex justify-between py-1.5 border-b border-surface-light/60">
-                      <span className="text-muted">End Date</span>
-                      <span className="font-medium text-foreground">{eventData.eventEndDate}</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between py-1.5 border-b border-surface-light/60">
+                    <span className="text-muted">Pick-Up Date</span>
+                    <span className="font-medium text-foreground">{eventData.eventEndDate}</span>
+                  </div>
                   <div className="sm:col-span-2 flex justify-between py-1.5 border-b border-surface-light/60">
                     <span className="text-muted">Delivery Address</span>
                     <span className="font-medium text-foreground text-right">{eventData.eventAddress}</span>
@@ -662,7 +701,7 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod("card")}
+                    onClick={handleSwitchToCard}
                     className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-medium text-sm transition-colors ${
                       paymentMethod === "card"
                         ? "border-accent bg-accent/5 text-accent"
@@ -676,7 +715,7 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod("bank")}
+                    onClick={() => { setPaymentMethod("bank"); setShowCcAlert(false); }}
                     className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-medium text-sm transition-colors ${
                       paymentMethod === "bank"
                         ? "border-accent bg-accent/5 text-accent"
@@ -689,6 +728,19 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                     Bank Account
                   </button>
                 </div>
+
+                {/* Credit card fee alert */}
+                {showCcAlert && paymentMethod === "card" && (
+                  <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 mb-6 text-sm text-amber-800 flex items-start gap-2">
+                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <span>
+                      A <strong>3% credit card processing fee</strong> will be added to your total.
+                      Switch to bank account to avoid this fee.
+                    </span>
+                  </div>
+                )}
 
                 {paymentMethod === "bank" && (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-6 text-sm text-green-700">
