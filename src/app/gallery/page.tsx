@@ -117,7 +117,7 @@ export default function GalleryPage() {
       </section>
 
       {/* Trailer Models Grid */}
-      <section className="py-20 sm:py-24">
+      <section id="trailer-models" className="py-20 sm:py-24 scroll-mt-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <p className="text-accent font-semibold tracking-[0.2em] uppercase text-xs mb-3">
@@ -231,32 +231,6 @@ export default function GalleryPage() {
         </div>
       </section>
 
-      {/* Like What You See CTA */}
-      <section className="py-20 sm:py-24 bg-surface text-center">
-        <div className="max-w-2xl mx-auto px-4">
-          <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-4">
-            Like What You See?
-          </h2>
-          <p className="text-muted mb-8">
-            Browse our trailer options or request a free quote today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/gallery"
-              className="px-8 py-4 bg-white text-primary font-bold rounded-full hover:bg-white/90 transition-colors shadow-lg border border-surface-light"
-            >
-              Book Your Reservation Online
-            </Link>
-            <Link
-              href="/quote"
-              className="px-8 py-4 border-2 border-accent/30 text-foreground font-medium rounded-full hover:bg-accent/5 transition-colors"
-            >
-              Get a Free Quote
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* Book Online CTA */}
       <section className="py-20 sm:py-24 hero-gradient text-center relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-accent/5" />
@@ -269,12 +243,12 @@ export default function GalleryPage() {
             recommendation based on your event size and needs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/gallery"
-              className="px-8 py-4 bg-white text-primary font-bold rounded-full hover:bg-white/90 transition-colors shadow-lg"
+            <a
+              href="#trailer-models"
+              className="px-8 py-4 bg-white text-primary font-bold rounded-full hover:bg-white/90 transition-colors shadow-lg cursor-pointer"
             >
-              Book Your Reservation Online
-            </Link>
+              Select a Trailer Above
+            </a>
             <Link
               href="/quote"
               className="px-8 py-4 bg-accent text-white font-bold rounded-full hover:bg-accent-dark transition-colors shadow-lg"
@@ -283,9 +257,9 @@ export default function GalleryPage() {
             </Link>
             <a
               href="tel:+18444178255"
-              className="px-8 py-4 border-2 border-white/30 text-white font-medium rounded-full hover:bg-white/10 transition-colors"
+              className="px-8 py-4 border-2 border-white/30 text-white font-medium rounded-full hover:bg-white/10 transition-colors leading-tight text-center"
             >
-              Call (844) 417-8255
+              Call<br />(844) 417-8255
             </a>
           </div>
         </div>

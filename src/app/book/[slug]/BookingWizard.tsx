@@ -60,6 +60,9 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
   // Credit card fee alert
   const [showCcAlert, setShowCcAlert] = useState(false);
 
+  // Date validation error
+  const [dateError, setDateError] = useState<string | null>(null);
+
   // Extract max capacity number from trailer.capacity string (e.g. "Up to 250 guests" → 250)
   const maxCapacity = parseInt(trailer.capacity.replace(/\D/g, ""), 10) || Infinity;
 
@@ -141,9 +144,10 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
       const data = getFormData();
       // Validate end date is not before start date
       if (data.eventDate && data.eventEndDate && data.eventEndDate < data.eventDate) {
-        alert("Pick-up date cannot be before the delivery date.");
+        setDateError("Pick-up date cannot be before the delivery date. Please update your dates to continue.");
         return;
       }
+      setDateError(null);
       setEventData(data);
       setStep(3);
       fetchPricing(data);
@@ -417,6 +421,14 @@ export default function BookingWizard({ trailer }: { trailer: Trailer }) {
                     </label>
                     <input type="date" id="eventEndDate" name="eventEndDate" required defaultValue={eventData.eventEndDate || ""} className={inputStyles} />
                   </div>
+                  {dateError && (
+                    <div className="sm:col-span-2 bg-red-50 border border-red-300 rounded-xl p-4 flex items-start gap-3">
+                      <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      </svg>
+                      <p className="text-red-700 text-sm font-medium">{dateError}</p>
+                    </div>
+                  )}
                   <div className="sm:col-span-2">
                     <label htmlFor="eventAddress" className="block text-sm font-medium text-foreground mb-1.5">
                       Event / Delivery Address <span className="text-red-500">*</span>

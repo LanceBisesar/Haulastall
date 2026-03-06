@@ -78,18 +78,32 @@ export function isHoliday(date: Date): boolean {
   return holidays.some((h) => dateToString(h) === dateStr);
 }
 
-/** Count how many holiday dates fall within a range */
+/**
+ * Returns the core holiday dates for a given year (one date per holiday).
+ * Used for counting distinct holidays (not expanded weekend ranges).
+ */
+export function getCoreHolidays(year: number): Date[] {
+  return [
+    new Date(year, 0, 1),                              // New Year's Day
+    lastDayOfWeek(year, 4, 1),                          // Memorial Day
+    new Date(year, 6, 4),                               // Independence Day
+    firstDayOfWeek(year, 8, 1),                         // Labor Day
+    nthDayOfWeek(year, 10, 4, 4),                       // Thanksgiving
+    new Date(year, 11, 25),                             // Christmas
+  ];
+}
+
+/** Count how many distinct holidays fall within a rental range */
 export function countHolidaysInRange(startDate: Date, endDate: Date): number {
-  // Collect unique holiday date strings across all years in the range
-  const holidaySet = new Set<string>();
+  let count = 0;
   for (let y = startDate.getFullYear(); y <= endDate.getFullYear(); y++) {
-    for (const h of getHolidayDates(y)) {
+    for (const h of getCoreHolidays(y)) {
       if (h >= startDate && h <= endDate) {
-        holidaySet.add(dateToString(h));
+        count++;
       }
     }
   }
-  return holidaySet.size;
+  return count;
 }
 
 /**
