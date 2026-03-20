@@ -33,6 +33,7 @@ const trailerModels = [
     config: "Two women's private stalls • Men's private stall with urinal",
     capacity: "Up to 175 guests",
     tag: "Versatile",
+    image: "/3-stall-3-door.jpg",
   },
   {
     name: "4 Door, 4 Stalls",
@@ -58,6 +59,7 @@ const trailerModels = [
     config: "Four women's stalls • Four men's stalls with urinals",
     capacity: "Up to 700 guests",
     tag: "Grand Events",
+    image: "/8-stall-8-door.jpg",
   },
 ];
 
