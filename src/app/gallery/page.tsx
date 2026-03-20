@@ -34,6 +34,7 @@ const trailerModels = [
     capacity: "Up to 175 guests",
     tag: "Versatile",
     image: "/3-stall-3-door.jpg",
+    layout: "/3-stall-3-door-layout.png",
   },
   {
     name: "4 Door, 4 Stalls",
@@ -60,6 +61,7 @@ const trailerModels = [
     capacity: "Up to 700 guests",
     tag: "Grand Events",
     image: "/8-stall-8-door.jpg",
+    layout: "/8-stall-8-door-layout.png",
   },
 ];
 
